@@ -5,7 +5,8 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build"
+        "distDir": "build",
+        "buildCommand": "npm run build"
       }
     }
   ],
@@ -15,17 +16,20 @@
       "headers": {
         "cache-control": "public, max-age=31536000, immutable"
       },
-      "continue": true
+      "dest": "/static/$1"
     },
     {
       "src": "/favicon.svg",
       "headers": {
         "cache-control": "public, max-age=31536000, immutable"
       },
-      "continue": true
+      "dest": "/favicon.svg"
     },
     {
       "src": "/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate"
+      },
       "dest": "/index.html"
     }
   ]
