@@ -7,7 +7,7 @@ import {
   createTheme,
   CssBaseline
 } from '@mui/material';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import LaptopIcon from '@mui/icons-material/Laptop';
 import MemoryIcon from '@mui/icons-material/Memory';
 import SpeedIcon from '@mui/icons-material/Speed';
