@@ -1,0 +1,12 @@
+Add your laptop images here with the following filenames:
+
+1. dell-xps-13.jpg
+2. macbook-pro-14.jpg
+3. thinkpad-x1.jpg
+4. asus-rog.jpg
+
+For testing purposes, you can download high quality laptop images from:
+- https://unsplash.com/photos/laptop-computer-on-wooden-desk-mP7aPSUm7aE
+- https://unsplash.com/photos/silver-and-black-laptop-computer-_8HI5xf4TkE
+- https://unsplash.com/photos/silver-macbook-beside-white-ceramic-mug-on-table-LPZy4da9aRo
+- https://unsplash.com/photos/black-laptop-computer-turned-on-showing-graph-on-screen-UtcsYLFbQ0g 
