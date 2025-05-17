@@ -2,15 +2,48 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart, Search, Menu, Headphones, Wrench, User } from 'lucide-react';
+import { ShoppingCart, Search, Menu, Headphones, Wrench, User, Laptop } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+
+// Define interface for category
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
 
 export function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch('/api/categories');
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchCategories();
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
@@ -52,12 +85,34 @@ export function Header() {
                     animate={{ opacity: 1, height: 'auto' }}
                     transition={{ duration: 0.2 }}
                   >
+                    <Link href="/products" className="block px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors">
+                      All Products
+                    </Link>
                     <Link href="/laptops/new" className="block px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors">
                       Brand New Laptops
                     </Link>
                     <Link href="/laptops/used" className="block px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors">
                       Used Laptops
                     </Link>
+                    
+                    {/* Categories section in mobile menu */}
+                    <div className="py-1">
+                      <h4 className="text-xs text-muted-foreground px-2 py-1">Categories</h4>
+                      {loading ? (
+                        <div className="px-2 py-1 text-sm text-muted-foreground">Loading...</div>
+                      ) : (
+                        categories.map(category => (
+                          <Link 
+                            key={category.id}
+                            href={`/category/${category.slug}`}
+                            className="block px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors"
+                          >
+                            {category.name}
+                          </Link>
+                        ))
+                      )}
+                    </div>
+                    
                     <Link href="/accessories" className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors">
                       <Headphones className="h-4 w-4" />
                       <span>Accessories</span>
@@ -113,6 +168,32 @@ export function Header() {
         </div>
         
         <nav className="hidden md:flex items-center gap-6">
+          <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">
+            All Products
+          </Link>
+          
+          {/* Categories dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="text-sm font-medium hover:text-primary transition-colors p-0">
+                Categories
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-48">
+              {loading ? (
+                <DropdownMenuItem disabled>Loading categories...</DropdownMenuItem>
+              ) : (
+                categories.map(category => (
+                  <DropdownMenuItem key={category.id} asChild>
+                    <Link href={`/category/${category.slug}`}>
+                      {category.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <Link href="/laptops/new" className="text-sm font-medium hover:text-primary transition-colors">
             Brand New Laptops
           </Link>

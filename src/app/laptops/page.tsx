@@ -1,126 +1,73 @@
+"use client";
+
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Filter, SortDesc, Laptop } from 'lucide-react';
+import { fetchProducts } from '@/lib/api';
 
-// Sample data for laptops
-const LAPTOPS = [
-  {
-    id: '1',
-    title: 'Dell XPS 13 9310 - Intel Core i7 11th Gen',
-    imageUrl: '/images/laptops/dell-xps-13.jpg',
-    price: 275000,
-    originalPrice: 320000,
-    condition: 'new' as const,
-    specs: {
-      processor: 'Intel Core i7-1165G7',
-      ram: '16GB LPDDR4x',
-      storage: '512GB SSD',
-      display: '13.4" FHD+ (1920 x 1200) InfinityEdge',
-    },
-  },
-  {
-    id: '2',
-    title: 'MacBook Pro 14" M1 Pro - Slightly Used',
-    imageUrl: '/images/laptops/macbook-pro-14.jpg',
-    price: 420000,
-    originalPrice: 580000,
-    condition: 'used' as const,
-    specs: {
-      processor: 'Apple M1 Pro 8-core',
-      ram: '16GB Unified',
-      storage: '512GB SSD',
-      display: '14.2" Liquid Retina XDR (3024 x 1964)',
-    },
-  },
-  {
-    id: '3',
-    title: 'Lenovo ThinkPad X1 Carbon Gen 9',
-    imageUrl: '/images/laptops/thinkpad-x1.jpg',
-    price: 310000,
-    originalPrice: undefined,
-    condition: 'new' as const,
-    specs: {
-      processor: 'Intel Core i5-1135G7',
-      ram: '16GB LPDDR4x',
-      storage: '256GB SSD',
-      display: '14" FHD (1920 x 1080) IPS Anti-glare',
-    },
-  },
-  {
-    id: '4',
-    title: 'ASUS ROG Zephyrus G14 - Gaming Laptop',
-    imageUrl: '/images/laptops/asus-rog.jpg',
-    price: 350000,
-    originalPrice: 395000,
-    condition: 'new' as const,
-    specs: {
-      processor: 'AMD Ryzen 9 5900HS',
-      ram: '16GB DDR4',
-      storage: '1TB NVMe SSD',
-      display: '14" QHD 120Hz',
-    },
-  },
-  {
-    id: '5',
-    title: 'HP EliteBook 840 G8 - Business Laptop',
-    imageUrl: '/images/laptops/hp-elitebook.jpg',
-    price: 235000,
-    originalPrice: 290000,
-    condition: 'new' as const,
-    specs: {
-      processor: 'Intel Core i5-1135G7',
-      ram: '16GB DDR4',
-      storage: '512GB SSD',
-      display: '14" FHD (1920 x 1080) IPS Anti-glare',
-    },
-  },
-  {
-    id: '6',
-    title: 'Acer Swift 3 - Used, Excellent Condition',
-    imageUrl: '/images/laptops/acer-swift.jpg',
-    price: 125000,
-    originalPrice: 195000,
-    condition: 'used' as const,
-    specs: {
-      processor: 'AMD Ryzen 5 4500U',
-      ram: '8GB LPDDR4x',
-      storage: '512GB SSD',
-      display: '14" FHD (1920 x 1080) IPS',
-    },
-  },
-  {
-    id: '7',
-    title: 'Microsoft Surface Laptop 4 - Certified Refurbished',
-    imageUrl: '/images/laptops/surface-laptop.jpg',
-    price: 280000,
-    originalPrice: 350000,
-    condition: 'used' as const,
-    specs: {
-      processor: 'AMD Ryzen 7 Microsoft Surface Edition',
-      ram: '16GB LPDDR4x',
-      storage: '512GB SSD',
-      display: '15" PixelSense (2496 x 1664) Touchscreen',
-    },
-  },
-  {
-    id: '8',
-    title: 'MSI GF65 Thin - Gaming Laptop',
-    imageUrl: '/images/laptops/msi-gf65.jpg',
-    price: 310000,
-    originalPrice: undefined,
-    condition: 'new' as const,
-    specs: {
-      processor: 'Intel Core i7-10750H',
-      ram: '16GB DDR4',
-      storage: '512GB NVMe SSD',
-      display: '15.6" FHD 144Hz',
-    },
-  },
-];
+// Define the product interface
+interface Product {
+  id: string | number;
+  title?: string;
+  name?: string;
+  image?: string;
+  image_url?: string;
+  price: number;
+  original_price?: number;
+  discount_price?: number;
+  condition?: 'new' | 'used';
+  specs: string | {
+    processor: string;
+    ram: string;
+    storage: string;
+    display: string;
+    [key: string]: string;
+  };
+}
 
 export default function LaptopsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('all');
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        setLoading(true);
+        const allProducts = await fetchProducts();
+        setProducts(allProducts);
+      } catch (error) {
+        console.error('Error loading products:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProducts();
+  }, []);
+
+  const filteredProducts = {
+    all: products,
+    new: products.filter(p => (p.condition || 'new').toLowerCase() === 'new'),
+    used: products.filter(p => (p.condition || 'new').toLowerCase() === 'used')
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
+  // Loading skeleton
+  const LoadingSkeleton = () => (
+    <>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="rounded-lg bg-card animate-pulse h-[300px]"></div>
+      ))}
+    </>
+  );
+
   return (
     <MainLayout>
       <div className="container px-4 md:px-6 py-8 md:py-12">
@@ -129,7 +76,7 @@ export default function LaptopsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Laptops</h1>
         </div>
 
-        <Tabs defaultValue="all" className="mb-8">
+        <Tabs defaultValue="all" className="mb-8" onValueChange={handleTabChange}>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <TabsList className="bg-card">
               <TabsTrigger value="all">All Laptops</TabsTrigger>
@@ -151,32 +98,85 @@ export default function LaptopsPage() {
 
           <TabsContent value="all" className="mt-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {LAPTOPS.map((laptop) => (
-                <ProductCard key={laptop.id} {...laptop} />
-              ))}
+              {loading ? (
+                <LoadingSkeleton />
+              ) : filteredProducts.all.length > 0 ? (
+                filteredProducts.all.map((product) => (
+                  <ProductCard 
+                    key={product.id} 
+                    id={String(product.id)}
+                    title={product.title || product.name || 'Unknown Product'}
+                    imageUrl={product.image || product.image_url || '/images/placeholder.jpg'}
+                    price={product.price}
+                    originalPrice={product.original_price || product.discount_price}
+                    condition={product.condition || 'new'}
+                    specs={typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No products found.</p>
+                </div>
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="new" className="mt-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {LAPTOPS.filter(laptop => laptop.condition === 'new').map((laptop) => (
-                <ProductCard key={laptop.id} {...laptop} />
-              ))}
+              {loading ? (
+                <LoadingSkeleton />
+              ) : filteredProducts.new.length > 0 ? (
+                filteredProducts.new.map((product) => (
+                  <ProductCard 
+                    key={product.id} 
+                    id={String(product.id)}
+                    title={product.title || product.name || 'Unknown Product'}
+                    imageUrl={product.image || product.image_url || '/images/placeholder.jpg'}
+                    price={product.price}
+                    originalPrice={product.original_price || product.discount_price}
+                    condition="new"
+                    specs={typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No new laptops found.</p>
+                </div>
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="used" className="mt-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {LAPTOPS.filter(laptop => laptop.condition === 'used').map((laptop) => (
-                <ProductCard key={laptop.id} {...laptop} />
-              ))}
+              {loading ? (
+                <LoadingSkeleton />
+              ) : filteredProducts.used.length > 0 ? (
+                filteredProducts.used.map((product) => (
+                  <ProductCard 
+                    key={product.id} 
+                    id={String(product.id)}
+                    title={product.title || product.name || 'Unknown Product'}
+                    imageUrl={product.image || product.image_url || '/images/placeholder.jpg'}
+                    price={product.price}
+                    originalPrice={product.original_price || product.discount_price}
+                    condition="used"
+                    specs={typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No used laptops found.</p>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-center mt-8">
-          <Button variant="outline" size="lg">Load More</Button>
-        </div>
+        {products.length > 0 && (
+          <div className="flex justify-center mt-8">
+            <Button variant="outline" size="lg">Load More</Button>
+          </div>
+        )}
       </div>
     </MainLayout>
   );

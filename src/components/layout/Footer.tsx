@@ -10,21 +10,21 @@ export function Footer() {
       <div className="container px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">Laptop Experts</h3>
+            <h3 className="text-lg font-semibold mb-4">Laptop Expert</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Sri Lanka&apos;s trusted laptop store for brand new and used laptops, repair services, and accessories.
             </p>
-            <div className="flex items-center gap-1 text-sm mb-2">
-              <MapPin className="h-4 w-4 text-primary" />
-              <span>123 Main Street, Colombo, Sri Lanka</span>
+            <div className="flex items-start gap-1 text-sm mb-2">
+              <MapPin className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+              <span>296/3/C, Delpe Junction, Ragama, Sri Lanka</span>
             </div>
             <div className="flex items-center gap-1 text-sm mb-2">
               <Phone className="h-4 w-4 text-primary" />
-              <span>+94 77 123 4567</span>
+              <span>076 444 2221</span>
             </div>
             <div className="flex items-center gap-1 text-sm">
               <Mail className="h-4 w-4 text-primary" />
-              <span>info@laptopexperts.lk</span>
+              <span>info@laptopexpert.lk</span>
             </div>
           </div>
           
@@ -101,7 +101,7 @@ export function Footer() {
         
         <div className="flex flex-col md:flex-row md:justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Laptop Experts. All rights reserved.
+            © {new Date().getFullYear()} Laptop Expert. All rights reserved.
           </p>
           <nav className="flex gap-6">
             <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
