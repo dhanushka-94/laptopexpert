@@ -190,13 +190,6 @@ export default function ProductsPage() {
                         <div className="text-lg font-bold text-primary">
                           Rs. {parseFloat(product.sale_price).toLocaleString()}
                         </div>
-                        
-                        {product.whole_sale_price && (
-                          <div className="text-sm text-gray-600">
-                            <span className="font-medium">Wholesale: </span>
-                            <span>Rs. {parseFloat(product.whole_sale_price).toLocaleString()}</span>
-                          </div>
-                        )}
                       </div>
                       
                       {product.warranty !== "0" && (

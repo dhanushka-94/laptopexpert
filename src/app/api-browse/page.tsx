@@ -193,15 +193,8 @@ export default function ApiBrowsePage() {
                       </div>
                       
                       <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm border-t pt-3">
-                        <span className="text-gray-500">Sale Price:</span>
+                        <span className="text-gray-500">Price:</span>
                         <span className="font-semibold text-primary">Rs. {parseFloat(product.sale_price).toLocaleString()}</span>
-                        
-                        {product.whole_sale_price && (
-                          <>
-                            <span className="text-gray-500">Wholesale:</span>
-                            <span>Rs. {parseFloat(product.whole_sale_price).toLocaleString()}</span>
-                          </>
-                        )}
                         
                         {product.warranty !== "0" && (
                           <>
