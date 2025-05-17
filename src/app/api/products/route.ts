@@ -78,7 +78,6 @@ export async function GET(request: Request) {
       name: item.item_name,
       item_code: item.item_code,
       price: parseFloat(item.sale_price),
-      original_price: parseFloat(item.whole_sale_price),
       category: item.category_name,
       brand: item.brand_name,
       specs: {

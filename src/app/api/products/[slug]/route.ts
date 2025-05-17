@@ -44,7 +44,6 @@ export async function GET(
         name: product.item_name,
         item_code: product.item_code,
         price: parseFloat(product.sale_price),
-        original_price: parseFloat(product.whole_sale_price),
         category: product.category_name,
         brand: product.brand_name,
         image: product.image_url || '/images/placeholder.jpg',
