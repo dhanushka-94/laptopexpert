@@ -1,57 +1,79 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Filter, SortDesc, Laptop } from 'lucide-react';
+import { fetchProducts } from '@/lib/api';
 
-// Sample data for used laptops
-const USED_LAPTOPS = [
-  {
-    id: '2',
-    title: 'MacBook Pro 14" M1 Pro - Slightly Used',
-    imageUrl: '/images/laptops/macbook-pro-14.jpg',
-    price: 420000,
-    originalPrice: 580000,
-    condition: 'used' as const,
-    specs: {
-      processor: 'Apple M1 Pro 8-core',
-      ram: '16GB Unified',
-      storage: '512GB SSD',
-      display: '14.2" Liquid Retina XDR (3024 x 1964)',
-    },
-  },
-  {
-    id: '6',
-    title: 'Acer Swift 3 - Used, Excellent Condition',
-    imageUrl: '/images/laptops/acer-swift.jpg',
-    price: 125000,
-    originalPrice: 195000,
-    condition: 'used' as const,
-    specs: {
-      processor: 'AMD Ryzen 5 4500U',
-      ram: '8GB LPDDR4x',
-      storage: '512GB SSD',
-      display: '14" FHD (1920 x 1080) IPS',
-    },
-  },
-  {
-    id: '7',
-    title: 'Microsoft Surface Laptop 4 - Certified Refurbished',
-    imageUrl: '/images/laptops/surface-laptop.jpg',
-    price: 280000,
-    originalPrice: 350000,
-    condition: 'used' as const,
-    specs: {
-      processor: 'AMD Ryzen 7 Microsoft Surface Edition',
-      ram: '16GB LPDDR4x',
-      storage: '512GB SSD',
-      display: '15" PixelSense (2496 x 1664) Touchscreen',
-    },
-  },
-];
+// Define the product interface
+interface Product {
+  id: string | number;
+  title?: string;
+  name?: string;
+  image?: string;
+  image_url?: string;
+  price: number;
+  original_price?: number;
+  discount_price?: number;
+  condition?: 'new' | 'used';
+  specs: string | {
+    processor: string;
+    ram: string;
+    storage: string;
+    display: string;
+    [key: string]: string;
+  };
+  slug: string;
+}
 
 export default function UsedLaptopsPage() {
+  const [usedLaptops, setUsedLaptops] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadUsedLaptops() {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch all products
+        const allProducts = await fetchProducts();
+        
+        // Filter for used laptops - for now, we'll consider the first few as "used"
+        // This can be updated when the API supports condition filtering
+        const usedProducts = allProducts.slice(8, 14);
+        
+        // Mark these products as used
+        const productsWithUsedCondition = usedProducts.map(product => ({
+          ...product,
+          condition: 'used' as const
+        }));
+        
+        console.log(`Found ${productsWithUsedCondition.length} used laptops`);
+        setUsedLaptops(productsWithUsedCondition);
+      } catch (error) {
+        console.error('Error loading used laptops:', error);
+        setError('Failed to load laptops. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadUsedLaptops();
+  }, []);
+
+  // Loading skeleton
+  const LoadingSkeleton = () => (
+    <>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="rounded-lg bg-card animate-pulse h-[300px]"></div>
+      ))}
+    </>
+  );
+
   return (
     <MainLayout>
       <div className="container px-4 md:px-6 py-8 md:py-12">
@@ -77,15 +99,40 @@ export default function UsedLaptopsPage() {
           </div>
         </div>
 
+        {error && (
+          <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
+            <p>{error}</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {USED_LAPTOPS.map((laptop) => (
-            <ProductCard key={laptop.id} {...laptop} />
-          ))}
+          {loading ? (
+            <LoadingSkeleton />
+          ) : usedLaptops.length > 0 ? (
+            usedLaptops.map((laptop) => (
+              <ProductCard 
+                key={laptop.id}
+                id={laptop.slug || String(laptop.id)}
+                title={laptop.title || laptop.name || 'Unknown Product'}
+                imageUrl={laptop.image || laptop.image_url || '/images/placeholder.jpg'}
+                price={laptop.price}
+                originalPrice={laptop.original_price || laptop.discount_price}
+                condition="used"
+                specs={typeof laptop.specs === 'string' ? JSON.parse(laptop.specs) : laptop.specs}
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">No used laptops found.</p>
+            </div>
+          )}
         </div>
 
-        <div className="flex justify-center mt-8">
-          <Button variant="outline" size="lg">Load More</Button>
-        </div>
+        {usedLaptops.length > 0 && (
+          <div className="flex justify-center mt-8">
+            <Button variant="outline" size="lg">Load More</Button>
+          </div>
+        )}
       </div>
     </MainLayout>
   );

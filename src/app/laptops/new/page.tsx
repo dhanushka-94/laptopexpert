@@ -1,71 +1,74 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Filter, SortDesc, Laptop } from 'lucide-react';
+import { fetchProducts } from '@/lib/api';
 
-// Sample data for new laptops
-const NEW_LAPTOPS = [
-  {
-    id: '1',
-    title: 'Dell XPS 13 9310 - Intel Core i7 11th Gen',
-    imageUrl: '/images/laptops/dell-xps-13.jpg',
-    price: 275000,
-    originalPrice: 320000,
-    condition: 'new' as const,
-    specs: {
-      processor: 'Intel Core i7-1165G7',
-      ram: '16GB LPDDR4x',
-      storage: '512GB SSD',
-      display: '13.4" FHD+ (1920 x 1200) InfinityEdge',
-    },
-  },
-  {
-    id: '3',
-    title: 'Lenovo ThinkPad X1 Carbon Gen 9',
-    imageUrl: '/images/laptops/thinkpad-x1.jpg',
-    price: 310000,
-    originalPrice: undefined,
-    condition: 'new' as const,
-    specs: {
-      processor: 'Intel Core i5-1135G7',
-      ram: '16GB LPDDR4x',
-      storage: '256GB SSD',
-      display: '14" FHD (1920 x 1080) IPS Anti-glare',
-    },
-  },
-  {
-    id: '4',
-    title: 'ASUS ROG Zephyrus G14 - Gaming Laptop',
-    imageUrl: '/images/laptops/asus-rog.jpg',
-    price: 350000,
-    originalPrice: 395000,
-    condition: 'new' as const,
-    specs: {
-      processor: 'AMD Ryzen 9 5900HS',
-      ram: '16GB DDR4',
-      storage: '1TB NVMe SSD',
-      display: '14" QHD 120Hz',
-    },
-  },
-  {
-    id: '5',
-    title: 'HP EliteBook 840 G8 - Business Laptop',
-    imageUrl: '/images/laptops/hp-elitebook.jpg',
-    price: 235000,
-    originalPrice: 290000,
-    condition: 'new' as const,
-    specs: {
-      processor: 'Intel Core i5-1135G7',
-      ram: '16GB DDR4',
-      storage: '512GB SSD',
-      display: '14" FHD (1920 x 1080) IPS Anti-glare',
-    },
-  },
-];
+// Define the product interface
+interface Product {
+  id: string | number;
+  title?: string;
+  name?: string;
+  image?: string;
+  image_url?: string;
+  price: number;
+  original_price?: number;
+  discount_price?: number;
+  condition?: 'new' | 'used';
+  specs: string | {
+    processor: string;
+    ram: string;
+    storage: string;
+    display: string;
+    [key: string]: string;
+  };
+  slug: string;
+}
 
 export default function NewLaptopsPage() {
+  const [newLaptops, setNewLaptops] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadNewLaptops() {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch all products and filter for new condition
+        const allProducts = await fetchProducts();
+        
+        // Filter for new condition or consider all products as new if condition is not specified
+        const newProducts = allProducts.filter(product => 
+          !product.condition || product.condition.toLowerCase() === 'new'
+        );
+        
+        console.log(`Found ${newProducts.length} new laptops`);
+        setNewLaptops(newProducts);
+      } catch (error) {
+        console.error('Error loading new laptops:', error);
+        setError('Failed to load laptops. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadNewLaptops();
+  }, []);
+
+  // Loading skeleton
+  const LoadingSkeleton = () => (
+    <>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="rounded-lg bg-card animate-pulse h-[300px]"></div>
+      ))}
+    </>
+  );
+
   return (
     <MainLayout>
       <div className="container px-4 md:px-6 py-8 md:py-12">
@@ -91,15 +94,40 @@ export default function NewLaptopsPage() {
           </div>
         </div>
 
+        {error && (
+          <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
+            <p>{error}</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {NEW_LAPTOPS.map((laptop) => (
-            <ProductCard key={laptop.id} {...laptop} />
-          ))}
+          {loading ? (
+            <LoadingSkeleton />
+          ) : newLaptops.length > 0 ? (
+            newLaptops.map((laptop) => (
+              <ProductCard 
+                key={laptop.id}
+                id={laptop.slug || String(laptop.id)}
+                title={laptop.title || laptop.name || 'Unknown Product'}
+                imageUrl={laptop.image || laptop.image_url || '/images/placeholder.jpg'}
+                price={laptop.price}
+                originalPrice={laptop.original_price || laptop.discount_price}
+                condition="new"
+                specs={typeof laptop.specs === 'string' ? JSON.parse(laptop.specs) : laptop.specs}
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">No new laptops found.</p>
+            </div>
+          )}
         </div>
 
-        <div className="flex justify-center mt-8">
-          <Button variant="outline" size="lg">Load More</Button>
-        </div>
+        {newLaptops.length > 0 && (
+          <div className="flex justify-center mt-8">
+            <Button variant="outline" size="lg">Load More</Button>
+          </div>
+        )}
       </div>
     </MainLayout>
   );

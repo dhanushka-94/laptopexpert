@@ -1,177 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// Sample products data
-const PRODUCTS = [
-  {
-    id: '1',
-    name: 'Dell XPS 13',
-    title: 'Dell XPS 13 9310 - Intel Core i7 11th Gen',
-    slug: 'dell-xps-13',
-    image: '/images/laptops/dell-xps-13.jpg',
-    image_url: '/images/laptops/dell-xps-13.jpg',
-    images: [
-      '/images/laptops/dell-xps-13.jpg',
-      '/images/laptops/dell-xps-13.jpg',
-      '/images/laptops/dell-xps-13.jpg',
-    ],
-    price: 275000,
-    original_price: 320000,
-    discount_price: 275000,
-    condition: 'new',
-    specs: JSON.stringify({
-      processor: 'Intel Core i7-1165G7',
-      ram: '16GB LPDDR4x',
-      storage: '512GB SSD',
-      display: '13.4" FHD+ (1920 x 1200) InfinityEdge',
-      graphics: 'Intel Iris Xe Graphics',
-      battery: 'Up to 14 hours',
-      weight: '1.2 kg',
-      ports: '2x Thunderbolt 4, headphone jack, microSD',
-      os: 'Windows 11 Home',
-      warranty: '1 Year Dell Official Warranty',
-    }),
-    description: 'The Dell XPS 13 is a premium ultrabook with a stunning design and powerful performance. This laptop features a beautiful edge-to-edge display, long battery life, and excellent build quality. Perfect for professionals, students, and anyone who needs a reliable and portable laptop.',
-    stock: 5,
-    rating: 4.8,
-    reviews: 24,
-    features: [
-      'InfinityEdge display with minimal bezels',
-      'Machined aluminum chassis with carbon fiber palm rest',
-      'Backlit keyboard with comfortable typing experience',
-      'HD webcam with Windows Hello support',
-      'Wi-Fi 6 and Bluetooth 5.1 connectivity',
-      'Stereo speakers with Waves MaxxAudio Pro',
-    ],
-    is_featured: true,
-    category_id: 1,
-    category_name: 'Ultrabook',
-  },
-  {
-    id: '2',
-    name: 'MacBook Pro 14',
-    title: 'MacBook Pro 14" M1 Pro - Slightly Used',
-    slug: 'macbook-pro-14',
-    image: '/images/laptops/macbook-pro-14.jpg',
-    image_url: '/images/laptops/macbook-pro-14.jpg',
-    images: [
-      '/images/laptops/macbook-pro-14.jpg',
-      '/images/laptops/macbook-pro-14.jpg',
-    ],
-    price: 420000,
-    original_price: 580000,
-    discount_price: 420000,
-    condition: 'used',
-    specs: JSON.stringify({
-      processor: 'Apple M1 Pro 8-core',
-      ram: '16GB Unified',
-      storage: '512GB SSD',
-      display: '14.2" Liquid Retina XDR (3024 x 1964)',
-      graphics: '14-core GPU',
-      battery: 'Up to 17 hours',
-      weight: '1.6 kg',
-      ports: '3x Thunderbolt 4, HDMI, SDXC card slot, MagSafe 3',
-      os: 'macOS',
-      warranty: 'AppleCare+',
-    }),
-    description: 'The MacBook Pro 14" with M1 Pro chip delivers extraordinary performance and battery life. With its stunning Liquid Retina XDR display and powerful processing capabilities, it\'s perfect for creative professionals and developers.',
-    stock: 3,
-    rating: 4.9,
-    reviews: 42,
-    features: [
-      'M1 Pro chip for extraordinary performance',
-      'Stunning Liquid Retina XDR display',
-      'Up to 17 hours of battery life',
-      'Studio-quality mic array',
-      'Six-speaker sound system with force-cancelling woofers',
-    ],
-    is_featured: true,
-    category_id: 2,
-    category_name: 'Premium',
-  },
-  {
-    id: '3',
-    name: 'Lenovo ThinkPad X1',
-    title: 'Lenovo ThinkPad X1 Carbon Gen 9',
-    slug: 'thinkpad-x1',
-    image: '/images/laptops/thinkpad-x1.jpg',
-    image_url: '/images/laptops/thinkpad-x1.jpg',
-    images: [
-      '/images/laptops/thinkpad-x1.jpg',
-    ],
-    price: 310000,
-    original_price: null,
-    discount_price: null,
-    condition: 'new',
-    specs: JSON.stringify({
-      processor: 'Intel Core i5-1135G7',
-      ram: '16GB LPDDR4x',
-      storage: '256GB SSD',
-      display: '14" FHD (1920 x 1080) IPS Anti-glare',
-      graphics: 'Intel Iris Xe Graphics',
-      battery: 'Up to 16 hours',
-      weight: '1.13 kg',
-      ports: '2x Thunderbolt 4, 2x USB 3.2, HDMI 2.0, headphone/mic combo',
-      os: 'Windows 11 Pro',
-      warranty: '3 Year Lenovo Premier Support',
-    }),
-    description: 'The ThinkPad X1 Carbon is a premium business laptop with robust security features, legendary ThinkPad keyboard, and military-grade durability in an ultralight package.',
-    stock: 7,
-    rating: 4.7,
-    reviews: 35,
-    features: [
-      'Military-grade durability (MIL-STD-810G certified)',
-      'ThinkShutter privacy camera cover',
-      'Fingerprint reader integrated with power button',
-      'Rapid Charge technology (80% in 1 hour)',
-      'TrackPoint pointing device',
-    ],
-    is_featured: false,
-    category_id: 3,
-    category_name: 'Business',
-  },
-  {
-    id: '4',
-    name: 'ASUS ROG Strix',
-    title: 'ASUS ROG Zephyrus G14 - Gaming Laptop',
-    slug: 'asus-rog-strix',
-    image: '/images/laptops/asus-rog.jpg',
-    image_url: '/images/laptops/asus-rog.jpg',
-    images: [
-      '/images/laptops/asus-rog.jpg',
-    ],
-    price: 350000,
-    original_price: 395000,
-    discount_price: 350000,
-    condition: 'new',
-    specs: JSON.stringify({
-      processor: 'AMD Ryzen 9 5900HS',
-      ram: '16GB DDR4',
-      storage: '1TB NVMe SSD',
-      display: '14" QHD 120Hz',
-      graphics: 'NVIDIA GeForce RTX 3060 6GB',
-      battery: 'Up to 10 hours',
-      weight: '1.7 kg',
-      ports: '2x USB-C, 2x USB-A, HDMI 2.0b, 3.5mm audio jack',
-      os: 'Windows 11 Home',
-      warranty: '2 Year ASUS Global Warranty',
-    }),
-    description: 'The ASUS ROG Zephyrus G14 is a powerful gaming laptop with NVIDIA RTX graphics, AMD Ryzen 9 processor, and a high refresh rate display, all in a compact 14-inch form factor.',
-    stock: 4,
-    rating: 4.6,
-    reviews: 28,
-    features: [
-      'NVIDIA GeForce RTX 3060 GPU for ultimate gaming performance',
-      'AMD Ryzen 9 processor with 8 cores and 16 threads',
-      'ROG Intelligent Cooling thermal system',
-      'Per-key RGB keyboard with gaming-optimized layout',
-      'Dolby Atmos audio for immersive sound',
-    ],
-    is_featured: true,
-    category_id: 4,
-    category_name: 'Gaming',
-  },
-];
-
 // GET handler to fetch all products
 export async function GET(request) {
   try {
@@ -180,30 +8,87 @@ export async function GET(request) {
     const category = searchParams.get('category');
     const limit = parseInt(searchParams.get('limit') || '100');
     
-    let filteredProducts = [...PRODUCTS];
+    // Get products from the external API
+    const response = await fetch("https://erp.laptopexpert.lk/api/v1/ApiItemController/itemList", {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      cache: 'no-store'
+    });
     
-    // Filter by featured status
-    if (featured) {
-      filteredProducts = filteredProducts.filter(p => 
-        featured === 'true' ? p.is_featured : !p.is_featured
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: `API request failed with status: ${response.status}` }, 
+        { status: response.status }
       );
+    }
+    
+    const data = await response.json();
+    
+    // Make sure we have valid data
+    if (!data || !data.data || !Array.isArray(data.data)) {
+      return NextResponse.json(
+        { error: 'Invalid data format from external API' }, 
+        { status: 500 }
+      );
+    }
+    
+    // Transform the API data to match our app's expected format
+    let products = data.data.map((item) => ({
+      id: item.id,
+      name: item.item_name,
+      title: item.item_name,
+      item_code: item.item_code,
+      slug: item.item_code,
+      image: item.image_url || '/images/placeholder.jpg',
+      image_url: item.image_url || '/images/placeholder.jpg',
+      price: parseFloat(item.sale_price),
+      original_price: parseFloat(item.whole_sale_price || item.sale_price),
+      discount_price: parseFloat(item.whole_sale_price || item.sale_price),
+      category: item.category_name,
+      category_name: item.category_name,
+      brand: item.brand_name,
+      specs: JSON.stringify({
+        processor: item.processor || 'Not specified',
+        ram: item.ram || 'Not specified',
+        storage: item.storage || 'Not specified',
+        display: item.display || 'Not specified',
+        warranty: item.warranty !== "0" ? `${item.warranty} ${item.warranty_date}` : 'No warranty'
+      }),
+      condition: 'new', // Default to new condition unless specified otherwise
+      is_featured: false // Default to non-featured
+    }));
+    
+    // Apply filters
+    // Filter by featured status (for now, just take the first few)
+    if (featured === 'true') {
+      products = products.slice(0, 4);
     }
     
     // Filter by category
     if (category) {
-      filteredProducts = filteredProducts.filter(p => 
-        p.category_name.toLowerCase() === category.toLowerCase()
+      console.log(`Filtering by category: ${category}`);
+      const lowercaseCategory = category.toLowerCase();
+      
+      products = products.filter(product => 
+        product.category_name && 
+        product.category_name.toLowerCase().includes(lowercaseCategory)
       );
+      
+      console.log(`Found ${products.length} products in category: ${category}`);
     }
     
     // Apply limit
-    filteredProducts = filteredProducts.slice(0, limit);
+    if (limit && !isNaN(limit)) {
+      products = products.slice(0, limit);
+    }
     
-    return NextResponse.json(filteredProducts);
+    return NextResponse.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch products' },
+      { error: 'Failed to fetch products from API' },
       { status: 500 }
     );
   }

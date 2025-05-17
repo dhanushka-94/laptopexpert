@@ -173,21 +173,119 @@ const PRODUCTS = [
 ];
 
 // GET handler to fetch product by slug
-export async function GET(request, { params }) {
+export async function GET(
+  request,
+  { params }
+) {
   try {
-    const { slug } = params;
+    // Handle params as it might be a promise in newer Next.js versions
+    const slug = params?.slug ? params.slug.toString() : '';
+    console.log(`Looking for product with slug: ${slug}`);
     
-    // Find product by slug
-    const product = PRODUCTS.find(p => p.slug === slug);
+    // Fetch data from external API if configured
+    let products = PRODUCTS;
+    
+    try {
+      const response = await fetch("https://erp.laptopexpert.lk/api/v1/ApiItemController/itemList", {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        cache: 'no-store'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data && data.data && Array.isArray(data.data)) {
+          // Live data from API - use this instead of sample data
+          products = data.data;
+          console.log(`Successfully fetched ${products.length} products from API`);
+          
+          // Find product by ID, item_code, or slug
+          const product = products.find((item) => 
+            item.id.toString() === slug || 
+            item.item_code === slug ||
+            item.slug === slug
+          );
+          
+          if (product) {
+            console.log(`Found product: ${product.item_name || product.name} (ID: ${product.id})`);
+            // Transform the product to match our app's expected format
+            const transformedProduct = {
+              id: product.id,
+              name: product.item_name || product.name,
+              title: product.item_name || product.name,
+              item_code: product.item_code,
+              slug: product.item_code || product.slug || product.id.toString(),
+              price: parseFloat(product.sale_price || product.price),
+              original_price: parseFloat(product.whole_sale_price || product.original_price || product.sale_price || product.price),
+              discount_price: parseFloat(product.discount_price || product.whole_sale_price || product.sale_price || product.price),
+              category: product.category_name,
+              brand: product.brand_name,
+              image: product.image_url || product.image || '/images/placeholder.jpg',
+              image_url: product.image_url || product.image || '/images/placeholder.jpg',
+              specs: {
+                processor: product.processor || 'Not specified',
+                ram: product.ram || 'Not specified',
+                storage: product.storage || 'Not specified',
+                display: product.display || 'Not specified',
+                warranty: product.warranty !== "0" ? `${product.warranty} ${product.warranty_date}` : 'No warranty'
+              }
+            };
+            
+            // Get related products (simple implementation - just return other products)
+            const relatedProducts = products
+              .filter(p => p.id !== product.id)
+              .slice(0, 3)
+              .map(p => ({
+                id: p.id,
+                title: p.item_name || p.name || p.title,
+                slug: p.item_code || p.slug || p.id.toString(),
+                image: p.image_url || p.image || '/images/placeholder.jpg',
+                price: parseFloat(p.sale_price || p.price),
+                original_price: parseFloat(p.whole_sale_price || p.original_price || p.price)
+              }));
+              
+            return NextResponse.json({
+              ...transformedProduct,
+              relatedProducts
+            });
+          }
+          
+          // No need to fall back to sample data if we didn't find the product in API data
+          console.log(`Product not found in API data for slug: ${slug}`);
+          return NextResponse.json(
+            { error: 'Product not found' },
+            { status: 404 }
+          );
+        }
+      }
+    } catch (apiError) {
+      console.error('Error fetching from external API:', apiError);
+      // Continue with sample data if API fails
+    }
+    
+    // Fall back to sample data
+    console.log('Using sample data as fallback');
+    
+    // Find product by slug or ID in sample data
+    const product = PRODUCTS.find(p => 
+      p.slug === slug || 
+      p.id.toString() === slug
+    );
     
     if (!product) {
+      console.log(`Product not found in sample data for slug: ${slug}`);
       return NextResponse.json(
         { error: 'Product not found' },
         { status: 404 }
       );
     }
     
-    // Get related products (simple implementation - just return other products)
+    console.log(`Found product in sample data: ${product.name} (ID: ${product.id})`);
+    
+    // Get related products from sample data
     const relatedProducts = PRODUCTS
       .filter(p => p.id !== product.id)
       .slice(0, 3)

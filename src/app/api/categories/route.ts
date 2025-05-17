@@ -43,12 +43,25 @@ export async function GET(request: Request) {
       return uniqueCategories;
     }, []);
     
+    console.log(`Found ${categories.length} unique categories: ${JSON.stringify(categories)}`);
+    
     // Format categories into objects with id and name
-    const formattedCategories = categories.map((name: string, index: number) => ({
-      id: index + 1,
-      name: name,
-      slug: name.toLowerCase().replace(/\s+/g, '-')
-    }));
+    const formattedCategories = categories.map((name: string, index: number) => {
+      // Generate a consistent slug by removing special characters, and ensuring lowercase with hyphens
+      const slug = name
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')     // Replace spaces with hyphens
+        .replace(/-+/g, '-');     // Replace multiple hyphens with single hyphen
+      
+      return {
+        id: index + 1,
+        name: name,
+        slug: slug
+      };
+    });
+    
+    console.log(`Formatted categories with slugs: ${JSON.stringify(formattedCategories)}`);
     
     return NextResponse.json(formattedCategories);
   } catch (error) {

@@ -28,50 +28,130 @@ interface Product {
     display: string;
     [key: string]: string;
   };
+  slug: string;
 }
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+// Filter helper function to avoid TypeScript errors
+const categoryMatches = (product: Product, categoryName: string): boolean => {
+  if (!product.category) return false;
+  
+  const productCategory = product.category.toLowerCase();
+  const searchCategory = categoryName.toLowerCase();
+  
+  return productCategory.includes(searchCategory) || searchCategory.includes(productCategory);
+};
+
+const wordBasedCategoryMatches = (product: Product, categoryWords: string[]): boolean => {
+  if (!product.category) return false;
+  
+  const productCategory = product.category.toLowerCase();
+  return categoryWords.some(word => word.length > 2 && productCategory.includes(word));
+};
 
 export default function CategoryPage() {
   const params = useParams();
-  const slug = params.slug as string;
+  const slugParam = params.slug as string;
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryName, setCategoryName] = useState<string>('');
+  
+  // Format the slug as a display name
+  const formatSlugName = (slug: string) => {
+    return slug.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
 
   useEffect(() => {
-    async function loadProducts() {
+    async function loadCategories() {
       try {
-        setLoading(true);
-        // Get all products
-        const allProducts = await fetchProducts({ category: slug });
-        setProducts(allProducts);
+        // First fetch all categories to get the exact category name from slug
+        const categoriesResponse = await fetch('/api/categories');
+        if (!categoriesResponse.ok) {
+          throw new Error('Failed to fetch categories');
+        }
         
-        // Set the category name from the first product if available
-        if (allProducts.length > 0 && allProducts[0].category) {
-          setCategoryName(allProducts[0].category);
+        const categories: Category[] = await categoriesResponse.json();
+        console.log("Available categories from API:", categories);
+        const category = categories.find(cat => cat.slug === slugParam);
+        
+        if (category) {
+          // Use the exact category name from the API
+          setCategoryName(category.name);
+          await loadProducts(category.name);
         } else {
-          // Format the slug as a display name if no products found
-          setCategoryName(slug.split('-').map(word => 
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join(' '));
+          // If category not found, use formatted slug name
+          const formattedName = formatSlugName(slugParam);
+          setCategoryName(formattedName);
+          await loadProducts(formattedName);
         }
       } catch (error) {
+        console.error('Error loading categories:', error);
+        // Fallback to using the formatted slug
+        const formattedName = formatSlugName(slugParam);
+        setCategoryName(formattedName);
+        await loadProducts(formattedName);
+      }
+    }
+
+    async function loadProducts(categoryName: string) {
+      try {
+        setLoading(true);
+        // First try to get products using the API's category filter
+        let products = await fetchProducts({ category: categoryName });
+        console.log(`Products fetched using API category parameter: ${products.length}`);
+        
+        // If no products found, fall back to client-side filtering with more flexible matching
+        if (products.length === 0) {
+          console.log(`No products from API, trying client-side filtering for category: "${categoryName}"`);
+          const allProducts = await fetchProducts();
+          console.log(`Total products fetched: ${allProducts.length}`);
+          
+          // Log the available categories for debugging
+          const availableCategories = [...new Set(allProducts
+            .map(p => p.category)
+            .filter(Boolean as unknown as (value: string | undefined) => value is string))];
+          console.log(`Available categories: ${JSON.stringify(availableCategories)}`);
+          
+          // Try more flexible matching (includes instead of exact match)
+          products = allProducts.filter(product => categoryMatches(product, categoryName));
+          
+          console.log(`Found ${products.length} products with flexible category matching`);
+          
+          // If still no results, try matching words
+          if (products.length === 0) {
+            const categoryWords = categoryName.toLowerCase().split(/\s+/);
+            products = allProducts.filter(product => wordBasedCategoryMatches(product, categoryWords));
+            console.log(`Found ${products.length} products with word-based matching`);
+          }
+        }
+        
+        setProducts(products);
+      } catch (error) {
         console.error('Error loading category products:', error);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
     }
 
-    if (slug) {
-      loadProducts();
+    if (slugParam) {
+      loadCategories();
     }
-  }, [slug]);
+  }, [slugParam]);
 
   return (
     <MainLayout>
       <div className="container px-4 md:px-6 py-8">
         <div className="flex items-center gap-2 mb-6">
           <Link 
-            href="/products" 
+            href="/laptops" 
             className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -106,7 +186,7 @@ export default function CategoryPage() {
             {products.map((product) => (
               <ProductCard 
                 key={product.id}
-                id={String(product.id)}
+                id={product.slug || String(product.id)}
                 title={product.title || product.name || 'Unknown Product'}
                 imageUrl={product.image || product.image_url || '/images/placeholder.jpg'}
                 price={product.price}
@@ -120,10 +200,10 @@ export default function CategoryPage() {
           <div className="text-center py-16">
             <h2 className="text-2xl font-bold mb-2">No Products Found</h2>
             <p className="text-muted-foreground mb-8">
-              There are currently no products in this category.
+              There are currently no products in the {categoryName} category.
             </p>
             <Button asChild>
-              <Link href="/products">Browse All Products</Link>
+              <Link href="/laptops">Browse All Products</Link>
             </Button>
           </div>
         )}

@@ -23,7 +23,7 @@ export interface Product {
     [key: string]: string;
   };
   featured?: boolean;
-  slug?: string;
+  slug: string;
 }
 
 interface FetchProductOptions {

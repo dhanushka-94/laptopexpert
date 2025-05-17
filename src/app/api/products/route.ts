@@ -77,9 +77,13 @@ export async function GET(request: Request) {
       id: item.id,
       name: item.item_name,
       item_code: item.item_code,
+      slug: item.item_code,
       price: parseFloat(item.sale_price),
+      original_price: parseFloat(item.whole_sale_price || item.sale_price),
+      discount_price: parseFloat(item.whole_sale_price || item.sale_price),
       category: item.category_name,
       brand: item.brand_name,
+      image_url: item.image_url || '/images/placeholder.jpg',
       specs: {
         processor: item.processor || 'Not specified',
         ram: item.ram || 'Not specified',
@@ -96,9 +100,25 @@ export async function GET(request: Request) {
     }
     
     if (category) {
-      transformedProducts = transformedProducts.filter((product: TransformedProduct) => 
-        product.category && product.category.toLowerCase().includes(category.toLowerCase())
+      console.log(`Filtering products by category: "${category}"`);
+      
+      // First try exact matches
+      let categoryProducts = transformedProducts.filter((product: TransformedProduct) => 
+        product.category && product.category.toLowerCase() === category.toLowerCase()
       );
+      
+      // If no results, try includes matches (more flexible)
+      if (categoryProducts.length === 0) {
+        console.log(`No exact category matches, trying includes matching for: "${category}"`);
+        categoryProducts = transformedProducts.filter((product: TransformedProduct) => 
+          product.category && 
+          (product.category.toLowerCase().includes(category.toLowerCase()) || 
+           category.toLowerCase().includes(product.category.toLowerCase()))
+        );
+      }
+      
+      console.log(`Found ${categoryProducts.length} products for category: "${category}"`);
+      transformedProducts = categoryProducts;
     }
     
     if (limitParam) {

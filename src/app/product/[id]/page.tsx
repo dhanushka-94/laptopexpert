@@ -65,7 +65,7 @@ export default function ProductPage() {
         setLoading(true);
         const fetchedProduct = await fetchProductBySlug(productId);
         
-        if (fetchedProduct) {
+        if (fetchedProduct && fetchedProduct.id) {
           setProduct(fetchedProduct as Product);
         } else {
           setError('Product not found');
@@ -205,7 +205,7 @@ export default function ProductPage() {
           {/* Product Info */}
           <ScrollAnimation direction="left">
             <div className="flex flex-col">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{product.title || product.name}</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{product.name || product.title || 'Product'}</h1>
               
               {product.rating && (
                 <div className="flex items-center gap-2 mt-2 mb-4">

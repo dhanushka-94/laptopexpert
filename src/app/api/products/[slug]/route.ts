@@ -7,6 +7,7 @@ export async function GET(
   try {
     // Handle params as it might be a promise in newer Next.js versions
     const slug = params?.slug ? params.slug.toString() : '';
+    console.log(`Looking for product with slug: ${slug}`);
     
     // Get product list from the external API
     const response = await fetch("https://erp.laptopexpert.lk/api/v1/ApiItemController/itemList", {
@@ -34,16 +35,24 @@ export async function GET(
       );
     }
     
-    // Find product by ID
-    const product = data.data.find((item: any) => item.id.toString() === slug);
+    // Find product by ID, item_code, or slug
+    const product = data.data.find((item: any) => 
+      item.id.toString() === slug || 
+      item.item_code === slug ||
+      item.slug === slug
+    );
     
     if (product) {
+      console.log(`Found product: ${product.item_name} (ID: ${product.id}, Item Code: ${product.item_code})`);
       // Transform the product to match our app's expected format
       const transformedProduct = {
         id: product.id,
         name: product.item_name,
         item_code: product.item_code,
+        slug: product.item_code, // Use item_code as slug if no dedicated slug field exists
         price: parseFloat(product.sale_price),
+        original_price: parseFloat(product.whole_sale_price || product.sale_price),
+        discount_price: parseFloat(product.whole_sale_price || product.sale_price),
         category: product.category_name,
         brand: product.brand_name,
         image: product.image_url || '/images/placeholder.jpg',
@@ -58,6 +67,8 @@ export async function GET(
       };
       
       return NextResponse.json(transformedProduct);
+    } else {
+      console.log(`Product not found for slug: ${slug}`);
     }
     
     // Return 404 if product not found

@@ -3,10 +3,27 @@
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export function HeroSection() {
-  const [imageError, setImageError] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Images from the specified folder
+  const sliderImages = [
+    '/images/slider/slider1 (1).jpg',
+    '/images/slider/slider1 (2).jpg',
+    '/images/slider/slider1 (3).jpg',
+  ];
+
+  // Auto-rotate slides
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % sliderImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [sliderImages.length]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -23,15 +40,6 @@ export function HeroSection() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
-  const imageVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { 
-      opacity: 1, 
-      scale: 1, 
-      transition: { duration: 0.8, ease: "easeOut" } 
-    }
-  };
-
   const featureVariants = {
     hidden: { opacity: 0, y: 10 },
     visible: {
@@ -46,28 +54,54 @@ export function HeroSection() {
     visible: { opacity: 1, x: 0 }
   };
 
+  // Handle image loading
+  const handleImageLoad = () => {
+    setIsLoading(false);
+  };
+
   return (
     <section className="relative bg-card overflow-hidden w-full">
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-r from-background/90 to-background/30 z-10" />
-        {!imageError ? (
+        
+        {/* Slider images */}
+        {sliderImages.map((image, index) => (
           <motion.div
+            key={image}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.5 }}
+            animate={{ 
+              opacity: currentSlide === index ? 1 : 0,
+              scale: currentSlide === index ? 1 : 1.1
+            }}
+            transition={{ duration: 1 }}
+            className="absolute inset-0"
           >
             <Image 
-              src="/images/hero-bg.jpg" 
-              alt="Hero background" 
+              src={image} 
+              alt={`Slider image ${index + 1}`} 
               fill 
               priority
               className="object-cover object-center"
-              onError={() => setImageError(true)}
+              onLoad={handleImageLoad}
             />
           </motion.div>
-        ) : (
-          <div className="absolute inset-0 hero-bg-fallback"></div>
-        )}
+        ))}
+        
+        {/* Slider indicators */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+          {sliderImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                currentSlide === index 
+                  ? 'bg-primary' 
+                  : 'bg-gray-300/50 hover:bg-gray-300/70'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
       
       <div className="container relative z-20 py-16 md:py-24 lg:py-32">
@@ -103,13 +137,13 @@ export function HeroSection() {
               variants={itemVariants}
             >
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" className="px-8">
-                  Shop Laptops
+                <Button size="lg" className="px-8" asChild>
+                  <Link href="/laptops">Shop Laptops</Link>
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" variant="outline" className="px-8">
-                  Our Services
+                <Button size="lg" variant="outline" className="px-8" asChild>
+                  <Link href="/services">Our Services</Link>
                 </Button>
               </motion.div>
             </motion.div>
@@ -171,33 +205,6 @@ export function HeroSection() {
               </motion.div>
             </motion.div>
           </motion.div>
-          
-          <div className="relative hidden lg:block">
-            <motion.div 
-              className="absolute -top-6 -right-6 w-72 h-72 bg-primary/20 rounded-full filter blur-3xl"
-              animate={{ 
-                scale: [1, 1.1, 1],
-                opacity: [0.5, 0.8, 0.5] 
-              }}
-              transition={{ 
-                duration: 5,
-                repeat: Infinity,
-                repeatType: "reverse"
-              }}
-            />
-            <motion.div 
-              className="relative z-10"
-              variants={imageVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <div className="relative w-[600px] h-[400px]">
-                <div className="product-image-fallback absolute inset-0 rounded-lg">
-                  Laptop Image
-                </div>
-              </div>
-            </motion.div>
-          </div>
         </div>
       </div>
     </section>
