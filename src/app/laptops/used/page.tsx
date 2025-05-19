@@ -18,6 +18,8 @@ interface Product {
   original_price?: number;
   discount_price?: number;
   condition?: 'new' | 'used';
+  category?: string;
+  category_name?: string;
   specs: string | {
     processor: string;
     ram: string;
@@ -42,17 +44,20 @@ export default function UsedLaptopsPage() {
         // Fetch all products
         const allProducts = await fetchProducts();
         
-        // Filter for used laptops - for now, we'll consider the first few as "used"
-        // This can be updated when the API supports condition filtering
-        const usedProducts = allProducts.slice(8, 14);
+        // Filter for used laptops - look for products in USED LAPTOPS category
+        const usedProducts = allProducts.filter(product => 
+          product.category_name && 
+          product.category_name.toUpperCase().includes('USED')
+        );
         
-        // Mark these products as used
+        console.log(`Found ${usedProducts.length} used laptops with category containing 'USED'`);
+        
+        // Ensure all products are marked as used
         const productsWithUsedCondition = usedProducts.map(product => ({
           ...product,
           condition: 'used' as const
         }));
         
-        console.log(`Found ${productsWithUsedCondition.length} used laptops`);
         setUsedLaptops(productsWithUsedCondition);
       } catch (error) {
         console.error('Error loading used laptops:', error);

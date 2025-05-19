@@ -180,13 +180,11 @@ export async function GET(
   try {
     // Handle params as it might be a promise in newer Next.js versions
     const slug = params?.slug ? params.slug.toString() : '';
-    console.log(`Looking for product with slug: ${slug}`);
+    console.log(`Looking for product with slug/code: ${slug}`);
     
-    // Fetch data from external API if configured
-    let products = PRODUCTS;
-    
+    // Fetch data from the new API
     try {
-      const response = await fetch("https://erp.laptopexpert.lk/api/v1/ApiItemController/itemList", {
+      const response = await fetch("https://api.erp.laptopexpert.lk/api/products", {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -195,56 +193,54 @@ export async function GET(
       });
       
       if (response.ok) {
-        const data = await response.json();
+        const apiResponse = await response.json();
         
-        if (data && data.data && Array.isArray(data.data)) {
-          // Live data from API - use this instead of sample data
-          products = data.data;
-          console.log(`Successfully fetched ${products.length} products from API`);
-          
-          // Find product by ID, item_code, or slug
-          const product = products.find((item) => 
+        if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data) && apiResponse.status === 'success') {
+          // Find product by ID or code
+          const product = apiResponse.data.find((item) => 
             item.id.toString() === slug || 
-            item.item_code === slug ||
-            item.slug === slug
+            item.code === slug
           );
           
           if (product) {
-            console.log(`Found product: ${product.item_name || product.name} (ID: ${product.id})`);
+            console.log(`Found product: ${product.name} (ID: ${product.id})`);
             // Transform the product to match our app's expected format
             const transformedProduct = {
               id: product.id,
-              name: product.item_name || product.name,
-              title: product.item_name || product.name,
-              item_code: product.item_code,
-              slug: product.item_code || product.slug || product.id.toString(),
-              price: parseFloat(product.sale_price || product.price),
-              original_price: parseFloat(product.whole_sale_price || product.original_price || product.sale_price || product.price),
-              discount_price: parseFloat(product.discount_price || product.whole_sale_price || product.sale_price || product.price),
+              name: product.name || product.alternative_name,
+              title: product.name || product.alternative_name,
+              item_code: product.code,
+              slug: product.code,
+              price: parseFloat(product.sale_price),
+              original_price: product.promotion_price ? parseFloat(product.promotion_price) : parseFloat(product.sale_price),
+              discount_price: product.promotion_price ? parseFloat(product.promotion_price) : parseFloat(product.sale_price),
               category: product.category_name,
               brand: product.brand_name,
-              image: product.image_url || product.image || '/images/placeholder.jpg',
-              image_url: product.image_url || product.image || '/images/placeholder.jpg',
+              stock: product.stock || 0,
+              description: product.description,
+              image: product.photo ? `https://api.erp.laptopexpert.lk/uploads/${product.photo}` : '/images/placeholder.jpg',
+              image_url: product.photo ? `https://api.erp.laptopexpert.lk/uploads/${product.photo}` : '/images/placeholder.jpg',
               specs: {
                 processor: product.processor || 'Not specified',
                 ram: product.ram || 'Not specified',
                 storage: product.storage || 'Not specified',
                 display: product.display || 'Not specified',
-                warranty: product.warranty !== "0" ? `${product.warranty} ${product.warranty_date}` : 'No warranty'
-              }
+                warranty: product.warranty_period ? `${product.warranty_period} ${product.warranty_category}` : 'No warranty'
+              },
+              condition: product.category_name && product.category_name.toLowerCase().includes('used') ? 'used' : 'new'
             };
             
-            // Get related products (simple implementation - just return other products)
-            const relatedProducts = products
-              .filter(p => p.id !== product.id)
-              .slice(0, 3)
+            // Get related products - products in the same category
+            const relatedProducts = apiResponse.data
+              .filter(p => p.id !== product.id && p.category_name === product.category_name)
+              .slice(0, 4)
               .map(p => ({
                 id: p.id,
-                title: p.item_name || p.name || p.title,
-                slug: p.item_code || p.slug || p.id.toString(),
-                image: p.image_url || p.image || '/images/placeholder.jpg',
-                price: parseFloat(p.sale_price || p.price),
-                original_price: parseFloat(p.whole_sale_price || p.original_price || p.price)
+                title: p.name || p.alternative_name,
+                slug: p.code,
+                image: p.photo ? `https://api.erp.laptopexpert.lk/uploads/${p.photo}` : '/images/placeholder.jpg',
+                price: parseFloat(p.sale_price),
+                original_price: p.promotion_price ? parseFloat(p.promotion_price) : null
               }));
               
             return NextResponse.json({
@@ -253,56 +249,15 @@ export async function GET(
             });
           }
           
-          // No need to fall back to sample data if we didn't find the product in API data
           console.log(`Product not found in API data for slug: ${slug}`);
-          return NextResponse.json(
-            { error: 'Product not found' },
-            { status: 404 }
-          );
         }
       }
     } catch (apiError) {
-      console.error('Error fetching from external API:', apiError);
-      // Continue with sample data if API fails
+      console.error('Error fetching from API:', apiError);
     }
     
-    // Fall back to sample data
-    console.log('Using sample data as fallback');
-    
-    // Find product by slug or ID in sample data
-    const product = PRODUCTS.find(p => 
-      p.slug === slug || 
-      p.id.toString() === slug
-    );
-    
-    if (!product) {
-      console.log(`Product not found in sample data for slug: ${slug}`);
-      return NextResponse.json(
-        { error: 'Product not found' },
-        { status: 404 }
-      );
-    }
-    
-    console.log(`Found product in sample data: ${product.name} (ID: ${product.id})`);
-    
-    // Get related products from sample data
-    const relatedProducts = PRODUCTS
-      .filter(p => p.id !== product.id)
-      .slice(0, 3)
-      .map(p => ({
-        id: p.id,
-        title: p.title,
-        slug: p.slug,
-        image: p.image,
-        price: p.price,
-        original_price: p.original_price
-      }));
-    
-    // Add related products to the product data
-    return NextResponse.json({
-      ...product,
-      relatedProducts
-    });
+    // Return 404 if product not found
+    return new NextResponse(null, { status: 404 });
   } catch (error) {
     console.error('Error fetching product:', error);
     return NextResponse.json(

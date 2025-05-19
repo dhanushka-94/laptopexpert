@@ -9,8 +9,8 @@ interface ApiItem {
 
 export async function GET(request: Request) {
   try {
-    // Get the actual data from the real API
-    const response = await fetch("https://erp.laptopexpert.lk/api/v1/ApiItemController/itemList", {
+    // Get the actual data from the new API
+    const response = await fetch("https://api.erp.laptopexpert.lk/api/products", {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -25,10 +25,10 @@ export async function GET(request: Request) {
       );
     }
     
-    const data = await response.json();
+    const apiResponse = await response.json();
     
     // Make sure we have valid data
-    if (!data || !data.data || !Array.isArray(data.data)) {
+    if (!apiResponse || !apiResponse.data || !Array.isArray(apiResponse.data) || apiResponse.status !== 'success') {
       return NextResponse.json(
         { error: 'Invalid data format from external API' }, 
         { status: 500 }
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
     }
     
     // Extract unique categories
-    const categories = data.data.reduce((uniqueCategories: string[], item: ApiItem) => {
+    const categories = apiResponse.data.reduce((uniqueCategories: string[], item: any) => {
       if (item.category_name && !uniqueCategories.includes(item.category_name)) {
         uniqueCategories.push(item.category_name);
       }
