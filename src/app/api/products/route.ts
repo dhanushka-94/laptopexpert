@@ -38,10 +38,53 @@ interface TransformedProduct {
   };
 }
 
+/**
+ * Helper function to fetch data with retries
+ */
+async function fetchWithRetry(url: string, options = {}, retries = 3, backoff = 300) {
+  try {
+    const response = await fetch(url, options);
+    
+    if (response.ok) {
+      return response;
+    }
+    
+    // If we got a 429 or 5xx error and have retries left
+    if ((response.status === 429 || response.status >= 500) && retries > 0) {
+      console.log(`Retrying fetch to ${url}, attempts left: ${retries}`);
+      
+      // Wait for backoff duration
+      await new Promise(resolve => setTimeout(resolve, backoff));
+      
+      // Exponential backoff
+      return fetchWithRetry(url, options, retries - 1, backoff * 2);
+    }
+    
+    return response;
+  } catch (error) {
+    if (retries > 0) {
+      console.log(`Network error, retrying fetch to ${url}, attempts left: ${retries}`);
+      
+      // Wait for backoff duration
+      await new Promise(resolve => setTimeout(resolve, backoff));
+      
+      // Exponential backoff
+      return fetchWithRetry(url, options, retries - 1, backoff * 2);
+    }
+    
+    throw error;
+  }
+}
+
 export async function GET(request: Request) {
   try {
+    console.log('API route called: /api/products');
+    
     // Get the actual data from the real API
-    const response = await fetch("https://erp.laptopexpert.lk/api/v1/ApiItemController/itemList", {
+    const apiUrl = "https://erp.laptopexpert.lk/api/v1/ApiItemController/itemList";
+    console.log(`Fetching from external API: ${apiUrl}`);
+    
+    const response = await fetchWithRetry(apiUrl, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -50,13 +93,18 @@ export async function GET(request: Request) {
     });
     
     if (!response.ok) {
+      console.error(`API request failed with status: ${response.status} - ${response.statusText}`);
       return NextResponse.json(
-        { error: `API request failed with status: ${response.status}` }, 
+        { 
+          error: `API request failed with status: ${response.status}`,
+          details: response.statusText
+        }, 
         { status: response.status }
       );
     }
     
     const data = await response.json();
+    console.log(`API response received. Data object has keys: ${Object.keys(data).join(', ')}`);
     
     // Get the query parameters from the request
     const { searchParams } = new URL(request.url);
@@ -66,11 +114,17 @@ export async function GET(request: Request) {
     
     // Make sure we have valid data
     if (!data || !data.data || !Array.isArray(data.data)) {
+      console.error('Invalid data format from external API:', data);
       return NextResponse.json(
-        { error: 'Invalid data format from external API' }, 
+        { 
+          error: 'Invalid data format from external API',
+          received: JSON.stringify(data).substring(0, 200) + '...' // Show partial data for debugging
+        }, 
         { status: 500 }
       );
     }
+    
+    console.log(`Successfully parsed ${data.data.length} products from external API`);
     
     // Transform the API data to match our app's expected format
     let transformedProducts = data.data.map((item: ApiItem) => ({
@@ -92,6 +146,8 @@ export async function GET(request: Request) {
         warranty: item.warranty !== "0" ? `${item.warranty} ${item.warranty_date}` : 'No warranty'
       }
     }));
+    
+    console.log(`Transformed ${transformedProducts.length} products`);
     
     // Apply filters if needed
     if (featured === 'true') {

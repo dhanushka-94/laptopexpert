@@ -4,6 +4,23 @@
  */
 
 /**
+ * Get the current base URL depending on the environment
+ * @returns {string} - API base URL
+ */
+export function getBaseUrl() {
+  // Check if we're running on the client or server side
+  const isClient = typeof window !== 'undefined';
+  
+  if (isClient) {
+    // In browser - use current origin with /api path
+    return `${window.location.origin}/api`;
+  }
+  
+  // In server context, use environment variable or fallback to localhost
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+}
+
+/**
  * Fetches data from the API with explicit GET method
  * @param {string} url - API URL to fetch from
  * @param {Object} options - Fetch options
@@ -22,7 +39,7 @@ export async function fetchData(url, options = {}) {
 }
 
 /**
- * Wrapper for the products API
+ * Wrapper for the products API with fallback to proxy
  * @param {Object} options - Query parameters
  * @returns {Promise<Object>} - JSON response
  */
@@ -36,21 +53,43 @@ export async function getProducts(options = {}) {
   });
   
   const queryString = params.toString() ? `?${params.toString()}` : '';
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+  const baseUrl = getBaseUrl();
   
   try {
-    const response = await fetchData(`${baseUrl}/products${queryString}`, { 
+    console.log(`Fetching products from: ${baseUrl}/products${queryString}`);
+    let response = await fetchData(`${baseUrl}/products${queryString}`, { 
       cache: 'no-store' 
     });
     
+    // If the main API fails, try the proxy fallback
     if (!response.ok) {
-      throw new Error(`Error fetching products: ${response.statusText}`);
+      console.warn(`Main API request failed with status: ${response.status}. Trying fallback proxy...`);
+      
+      // Use the proxy endpoint as fallback
+      response = await fetchData(`${baseUrl}/proxy`, { 
+        cache: 'no-store' 
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Both main API and fallback proxy failed. Status: ${response.status}`);
+      }
+      
+      console.log('Successfully fetched data from fallback proxy');
+      const proxyData = await response.json();
+      
+      // The proxy returns data in a different format, handle it
+      if (proxyData && proxyData.data && Array.isArray(proxyData.data)) {
+        return proxyData.data;
+      }
+      
+      return proxyData; // Just return whatever we got
     }
     
     return await response.json();
   } catch (error) {
     console.error('Failed to fetch products:', error);
-    throw error;
+    // Return empty array instead of throwing to avoid breaking the UI
+    return [];
   }
 }
 
@@ -60,9 +99,10 @@ export async function getProducts(options = {}) {
  * @returns {Promise<Object>} - JSON response
  */
 export async function getProductBySlug(slug) {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+  const baseUrl = getBaseUrl();
   
   try {
+    console.log(`Fetching product details from: ${baseUrl}/products/${slug}`);
     const response = await fetchData(`${baseUrl}/products/${slug}`, { 
       cache: 'no-store' 
     });
@@ -77,6 +117,6 @@ export async function getProductBySlug(slug) {
     return await response.json();
   } catch (error) {
     console.error(`Failed to fetch product with slug ${slug}:`, error);
-    throw error;
+    return null; // Return null instead of throwing
   }
 } 

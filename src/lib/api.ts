@@ -32,8 +32,26 @@ interface FetchProductOptions {
   limit?: number;
 }
 
-// Base API URL from environment variables
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+// Function to determine the correct API URL
+const getApiUrl = () => {
+  // Use environment variable if set
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // Check if window is defined (client-side)
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    return `${protocol}//${host}/api`;
+  }
+  
+  // Fallback for server-side
+  return '/api';
+};
+
+// Base API URL
+const API_URL = getApiUrl();
 
 /**
  * Fetch all products with optional filters
