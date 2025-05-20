@@ -5,7 +5,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Filter, SortDesc, Laptop } from 'lucide-react';
-import { fetchProducts } from '@/lib/api';
+import { getProducts } from '@/lib/api-util';
 
 // Define the product interface
 interface Product {
@@ -42,13 +42,13 @@ export default function UsedLaptopsPage() {
         setError(null);
         
         // Fetch all products
-        const allProducts = await fetchProducts();
+        const allProducts = await getProducts();
         
         // Filter for used laptops - look for products in USED LAPTOPS category
-        const usedProducts = allProducts.filter(product => 
+        const usedProducts = Array.isArray(allProducts) ? allProducts.filter(product => 
           product.category_name && 
           product.category_name.toUpperCase().includes('USED')
-        );
+        ) : [];
         
         console.log(`Found ${usedProducts.length} used laptops with category containing 'USED'`);
         
@@ -134,9 +134,9 @@ export default function UsedLaptopsPage() {
         </div>
 
         {usedLaptops.length > 0 && (
-          <div className="flex justify-center mt-8">
-            <Button variant="outline" size="lg">Load More</Button>
-          </div>
+        <div className="flex justify-center mt-8">
+          <Button variant="outline" size="lg">Load More</Button>
+        </div>
         )}
       </div>
     </MainLayout>

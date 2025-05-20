@@ -11,7 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollAnimation } from '@/components/ui/scroll-animation';
 import { motion } from 'framer-motion';
-import { fetchProductBySlug } from '@/lib/api';
+import { getProductBySlug } from '@/lib/api-util';
 import { useRouter, useParams } from 'next/navigation';
 
 // Define product interface
@@ -63,9 +63,10 @@ export default function ProductPage() {
     async function loadProduct() {
       try {
         setLoading(true);
-        const fetchedProduct = await fetchProductBySlug(productId);
+        setError(null);
+        const fetchedProduct = await getProductBySlug(productId);
         
-        if (fetchedProduct && fetchedProduct.id) {
+        if (fetchedProduct && typeof fetchedProduct === 'object' && 'id' in fetchedProduct) {
           setProduct(fetchedProduct as Product);
         } else {
           setError('Product not found');

@@ -22,6 +22,10 @@ export function Footer() {
               <Phone className="h-4 w-4 text-primary" />
               <span>076 444 2221</span>
             </div>
+            <div className="flex items-center gap-1 text-sm mb-2">
+              <Phone className="h-4 w-4 text-primary" />
+              <span>011 2 960 660</span>
+            </div>
             <div className="flex items-center gap-1 text-sm">
               <Mail className="h-4 w-4 text-primary" />
               <span>info@laptopexpert.lk</span>
@@ -89,10 +93,11 @@ export function Footer() {
             
             <h3 className="text-lg font-semibold mb-4">Payment Methods</h3>
             <div className="flex gap-2 flex-wrap">
-              <div className="bg-muted h-8 w-12 rounded-md flex items-center justify-center text-xs">Visa</div>
-              <div className="bg-muted h-8 w-12 rounded-md flex items-center justify-center text-xs">MC</div>
-              <div className="bg-muted h-8 w-12 rounded-md flex items-center justify-center text-xs">Amex</div>
-              <div className="bg-muted h-8 w-12 rounded-md flex items-center justify-center text-xs">PayPal</div>
+              <div className="bg-muted h-8 w-12 rounded-md flex items-center justify-center text-xs">VISA</div>
+              <div className="bg-muted h-8 w-12 rounded-md flex items-center justify-center text-xs">MASTER</div>
+              <div className="bg-muted h-8 w-12 rounded-md flex items-center justify-center text-xs">AMEX</div>
+              <div className="bg-muted h-8 w-12 rounded-md flex items-center justify-center text-xs">KOKO</div>
+              <div className="bg-muted h-8 max-w-fit px-2 rounded-md flex items-center justify-center text-xs">Bank Transfer</div>
             </div>
           </div>
         </div>
@@ -100,9 +105,14 @@ export function Footer() {
         <Separator className="my-8" />
         
         <div className="flex flex-col md:flex-row md:justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Laptop Expert. All rights reserved.
-          </p>
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} Laptop Expert. All rights reserved.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Developed by olexto Digital Solutions (Pvt) Ltd
+            </p>
+          </div>
           <nav className="flex gap-6">
             <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Privacy Policy

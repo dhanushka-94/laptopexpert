@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Heart, Laptop } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
@@ -35,6 +35,8 @@ export function ProductCard({
 }: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
   const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+  const brandName = title.split(' ')[0]; // Extract the first word as brand name
+  const fullImageUrl = imageUrl ? `https://erp.laptopexpert.lk//uploads/items/${imageUrl}` : '';
   
   return (
     <motion.div
@@ -47,9 +49,9 @@ export function ProductCard({
         <Link href={`/product/${id}`}>
           <div className="relative">
             <AspectRatio ratio={4/3}>
-              {!imageError ? (
+              {!imageError && imageUrl ? (
                 <Image
-                  src={imageUrl}
+                  src={fullImageUrl}
                   alt={title}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -57,8 +59,8 @@ export function ProductCard({
                   onError={() => setImageError(true)}
                 />
               ) : (
-                <div className="product-image-fallback w-full h-full flex items-center justify-center">
-                  <Laptop className="h-10 w-10 opacity-50" />
+                <div className="product-image-fallback w-full h-full flex items-center justify-center bg-muted">
+                  <span className="text-2xl font-bold text-muted-foreground">{brandName}</span>
                 </div>
               )}
             </AspectRatio>
@@ -102,40 +104,7 @@ export function ProductCard({
           </div>
         </Link>
         
-        <CardContent className="p-4">
-          <Link href={`/product/${id}`} className="block">
-            <h3 className="font-semibold text-base mb-1 line-clamp-2 group-hover:text-primary transition-colors">
-              {title}
-            </h3>
-          </Link>
-          
-          <div className="text-xs text-muted-foreground space-y-1 mb-2">
-            <p>{specs.processor}</p>
-            <p>{specs.ram} RAM • {specs.storage}</p>
-            <p>{specs.display}</p>
-          </div>
-          
-          <div className="flex items-baseline gap-2 mt-2">
-            <motion.span 
-              className="text-lg font-semibold"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              Rs. {price.toLocaleString()}
-            </motion.span>
-            {originalPrice && (
-              <motion.span 
-                className="text-sm text-muted-foreground line-through"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                Rs. {originalPrice.toLocaleString()}
-              </motion.span>
-            )}
-          </div>
-        </CardContent>
+                <CardContent className="p-4">          <Link href={`/product/${id}`} className="block">            <h3 className="font-semibold text-base mb-1 line-clamp-2 group-hover:text-primary transition-colors">              {title}            </h3>          </Link>                    <div className="text-xs text-muted-foreground space-y-1 mb-2">            <p>{specs.processor}</p>            <p>{specs.ram} RAM • {specs.storage}</p>            <p>{specs.display}</p>          </div>                    <div className="flex items-baseline gap-2 mt-2">            <motion.span               className="text-lg font-semibold"              initial={{ opacity: 0 }}              animate={{ opacity: 1 }}              transition={{ delay: 0.3 }}            >              Rs. {price.toLocaleString()}            </motion.span>            {originalPrice && (              <motion.span                 className="text-sm text-muted-foreground line-through"                initial={{ opacity: 0 }}                animate={{ opacity: 1 }}                transition={{ delay: 0.4 }}              >                Rs. {originalPrice.toLocaleString()}              </motion.span>            )}          </div>        </CardContent>
         
         <CardFooter className="p-4 pt-0">
           <motion.div

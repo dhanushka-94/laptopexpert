@@ -6,7 +6,7 @@ import { ProductCard } from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Filter, SortDesc, Laptop } from 'lucide-react';
-import { fetchProducts } from '@/lib/api';
+import { getProducts } from '@/lib/api-util';
 
 // Define the product interface
 interface Product {
@@ -32,15 +32,19 @@ export default function LaptopsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadProducts() {
       try {
         setLoading(true);
-        const allProducts = await fetchProducts();
-        setProducts(allProducts);
+        setError(null);
+        const allProducts = await getProducts();
+        setProducts(Array.isArray(allProducts) ? allProducts : []);
       } catch (error) {
         console.error('Error loading products:', error);
+        setError('Failed to load products. Please try again later.');
+        setProducts([]);
       } finally {
         setLoading(false);
       }

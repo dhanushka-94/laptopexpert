@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ProductCard } from '@/components/product/ProductCard';
-import { fetchProducts } from '@/lib/api';
+import { getProducts } from '@/lib/api-util';
 import Link from 'next/link';
 
 // Define the product interface
@@ -29,16 +29,20 @@ interface Product {
 export function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadProducts() {
       try {
         setLoading(true);
+        setError(null);
         // Get actual products from the API with a limit of 4
-        const featuredProducts = await fetchProducts({ limit: 4 });
-        setProducts(featuredProducts);
+        const featuredProducts = await getProducts({ limit: 4 });
+        setProducts(Array.isArray(featuredProducts) ? featuredProducts : []);
       } catch (error) {
         console.error('Error loading featured products:', error);
+        setError('Failed to load products. Please try again later.');
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -64,6 +68,12 @@ export function FeaturedProducts() {
             View All
           </Link>
         </div>
+        
+        {error && (
+          <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
+            <p>{error}</p>
+          </div>
+        )}
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {loading ? (

@@ -11,6 +11,7 @@ export async function GET(request: Request) {
   try {
     // Get the actual data from the new API
     const response = await fetch("https://api.erp.laptopexpert.lk/api/products", {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

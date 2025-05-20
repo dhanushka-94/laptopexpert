@@ -30,7 +30,10 @@ export async function fetchProducts(options = {}) {
     }
     
     const queryString = params.toString() ? `?${params.toString()}` : '';
-    const response = await fetch(`${API_URL}/products${queryString}`, { cache: 'no-store' });
+    const response = await fetch(`${API_URL}/products${queryString}`, { 
+      method: 'GET',
+      cache: 'no-store' 
+    });
     
     if (!response.ok) {
       throw new Error(`Error fetching products: ${response.statusText}`);
@@ -50,7 +53,10 @@ export async function fetchProducts(options = {}) {
  */
 export async function fetchProductBySlug(slug) {
   try {
-    const response = await fetch(`${API_URL}/products/${slug}`, { cache: 'no-store' });
+    const response = await fetch(`${API_URL}/products/${slug}`, { 
+      method: 'GET',
+      cache: 'no-store' 
+    });
     
     if (!response.ok) {
       if (response.status === 404) {

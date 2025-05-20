@@ -10,6 +10,7 @@ export async function GET(request) {
     
     // Get products from the new API endpoint
     const response = await fetch("https://api.erp.laptopexpert.lk/api/products", {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -41,8 +42,8 @@ export async function GET(request) {
       title: item.name || item.alternative_name,
       item_code: item.code,
       slug: item.code,
-      image: item.photo ? `https://api.erp.laptopexpert.lk/uploads/${item.photo}` : '/images/placeholder.jpg',
-      image_url: item.photo ? `https://api.erp.laptopexpert.lk/uploads/${item.photo}` : '/images/placeholder.jpg',
+      image: item.photo ? `https://erp.laptopexpert.lk//uploads/items/${item.photo}` : (item.brand_name ? `/images/brands/${item.brand_name.toLowerCase().replace(/\s+/g, '')}.png` : '/images/placeholder.jpg'),
+      image_url: item.photo ? `https://erp.laptopexpert.lk//uploads/items/${item.photo}` : (item.brand_name ? `/images/brands/${item.brand_name.toLowerCase().replace(/\s+/g, '')}.png` : '/images/placeholder.jpg'),
       price: parseFloat(item.sale_price),
       original_price: item.promotion_price ? parseFloat(item.promotion_price) : parseFloat(item.sale_price),
       discount_price: item.promotion_price ? parseFloat(item.promotion_price) : parseFloat(item.sale_price),
@@ -81,8 +82,8 @@ export async function GET(request) {
             title: item.name || item.alternative_name,
             item_code: item.code,
             slug: item.code,
-            image: item.photo ? `https://api.erp.laptopexpert.lk/uploads/${item.photo}` : '/images/placeholder.jpg',
-            image_url: item.photo ? `https://api.erp.laptopexpert.lk/uploads/${item.photo}` : '/images/placeholder.jpg',
+            image: item.photo ? `https://erp.laptopexpert.lk//uploads/items/${item.photo}` : (item.brand_name ? `/images/brands/${item.brand_name.toLowerCase().replace(/\s+/g, '')}.png` : '/images/placeholder.jpg'),
+            image_url: item.photo ? `https://erp.laptopexpert.lk//uploads/items/${item.photo}` : (item.brand_name ? `/images/brands/${item.brand_name.toLowerCase().replace(/\s+/g, '')}.png` : '/images/placeholder.jpg'),
             price: parseFloat(item.sale_price),
             original_price: item.promotion_price ? parseFloat(item.promotion_price) : parseFloat(item.sale_price),
             discount_price: item.promotion_price ? parseFloat(item.promotion_price) : parseFloat(item.sale_price),

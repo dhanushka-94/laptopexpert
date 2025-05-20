@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/product/ProductCard';
-import { fetchProducts } from '@/lib/api';
+import { getProducts } from '@/lib/api-util';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ListFilter } from 'lucide-react';
 import Link from 'next/link';
@@ -104,35 +104,39 @@ export default function CategoryPage() {
       try {
         setLoading(true);
         // First try to get products using the API's category filter
-        let products = await fetchProducts({ category: categoryName });
-        console.log(`Products fetched using API category parameter: ${products.length}`);
+        let products = await getProducts({ category: categoryName });
+        let productArray = Array.isArray(products) ? products : [];
+        
+        console.log(`Products fetched using API category parameter: ${productArray.length}`);
         
         // If no products found, fall back to client-side filtering with more flexible matching
-        if (products.length === 0) {
+        if (productArray.length === 0) {
           console.log(`No products from API, trying client-side filtering for category: "${categoryName}"`);
-          const allProducts = await fetchProducts();
-          console.log(`Total products fetched: ${allProducts.length}`);
+          const allProducts = await getProducts();
+          const allProductsArray = Array.isArray(allProducts) ? allProducts : [];
+          
+          console.log(`Total products fetched: ${allProductsArray.length}`);
           
           // Log the available categories for debugging
-          const availableCategories = [...new Set(allProducts
+          const availableCategories = [...new Set(allProductsArray
             .map(p => p.category)
             .filter(Boolean as unknown as (value: string | undefined) => value is string))];
           console.log(`Available categories: ${JSON.stringify(availableCategories)}`);
           
           // Try more flexible matching (includes instead of exact match)
-          products = allProducts.filter(product => categoryMatches(product, categoryName));
+          productArray = allProductsArray.filter(product => categoryMatches(product, categoryName));
           
-          console.log(`Found ${products.length} products with flexible category matching`);
+          console.log(`Found ${productArray.length} products with flexible category matching`);
           
           // If still no results, try matching words
-          if (products.length === 0) {
+          if (productArray.length === 0) {
             const categoryWords = categoryName.toLowerCase().split(/\s+/);
-            products = allProducts.filter(product => wordBasedCategoryMatches(product, categoryWords));
-            console.log(`Found ${products.length} products with word-based matching`);
+            productArray = allProductsArray.filter(product => wordBasedCategoryMatches(product, categoryWords));
+            console.log(`Found ${productArray.length} products with word-based matching`);
           }
         }
         
-        setProducts(products);
+        setProducts(productArray);
       } catch (error) {
         console.error('Error loading category products:', error);
         setProducts([]);

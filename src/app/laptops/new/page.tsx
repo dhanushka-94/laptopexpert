@@ -5,7 +5,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/product/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Filter, SortDesc, Laptop } from 'lucide-react';
-import { fetchProducts } from '@/lib/api';
+import { getProducts } from '@/lib/api-util';
 
 // Define the product interface
 interface Product {
@@ -40,12 +40,12 @@ export default function NewLaptopsPage() {
         setError(null);
         
         // Fetch all products and filter for new condition
-        const allProducts = await fetchProducts();
+        const allProducts = await getProducts();
         
         // Filter for new condition or consider all products as new if condition is not specified
-        const newProducts = allProducts.filter(product => 
+        const newProducts = Array.isArray(allProducts) ? allProducts.filter(product => 
           !product.condition || product.condition.toLowerCase() === 'new'
-        );
+        ) : [];
         
         console.log(`Found ${newProducts.length} new laptops`);
         setNewLaptops(newProducts);
