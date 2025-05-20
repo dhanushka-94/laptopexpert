@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProductCard } from '@/components/product/ProductCard';
@@ -32,7 +32,8 @@ interface Product {
   stock?: number;
 }
 
-export default function SearchPage() {
+// Separate client component to use search params
+function SearchResults() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   
@@ -106,66 +107,86 @@ export default function SearchPage() {
   );
 
   return (
-    <MainLayout>
-      <div className="container px-4 md:px-6 py-8 md:py-12">
-        <div className="flex items-center mb-6 gap-2">
-          <Search className="h-5 w-5 text-primary" />
-          <h1 className="text-3xl font-bold tracking-tight">Search Results</h1>
-        </div>
+    <div className="container px-4 md:px-6 py-8 md:py-12">
+      <div className="flex items-center mb-6 gap-2">
+        <Search className="h-5 w-5 text-primary" />
+        <h1 className="text-3xl font-bold tracking-tight">Search Results</h1>
+      </div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <p className="text-muted-foreground">
-            {loading ? 'Searching...' : 
-              products.length > 0 
-                ? `${products.length} results for "${query}"`
-                : `No results found for "${query}"`
-            }
-          </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <p className="text-muted-foreground">
+          {loading ? 'Searching...' : 
+            products.length > 0 
+              ? `${products.length} results for "${query}"`
+              : `No results found for "${query}"`
+          }
+        </p>
 
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-          </div>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
-            <p>{error}</p>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {loading ? (
-            <LoadingSkeleton />
-          ) : products.length > 0 ? (
-            products.map((product) => (
-              <ProductCard 
-                key={product.id}
-                id={String(product.id)}
-                title={product.title || product.name || 'Unknown Product'}
-                imageUrl={product.image || product.image_url || '/images/placeholder.jpg'}
-                price={product.price}
-                originalPrice={product.original_price || product.discount_price}
-                condition={product.condition || 'new'}
-                specs={typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs}
-                stock={product.stock}
-                category={product.category}
-                discountPercentage={product.discount_percentage}
-                slug={product.slug}
-              />
-            ))
-          ) : !loading && query ? (
-            <div className="col-span-full text-center py-12">
-              <p className="text-muted-foreground mb-4">No products found matching your search.</p>
-              <Button variant="outline" onClick={() => window.history.back()}>
-                Go Back
-              </Button>
-            </div>
-          ) : null}
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" className="gap-2">
+            <Filter className="h-4 w-4" />
+            Filter
+          </Button>
         </div>
       </div>
+
+      {error && (
+        <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
+          <p>{error}</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {loading ? (
+          <LoadingSkeleton />
+        ) : products.length > 0 ? (
+          products.map((product) => (
+            <ProductCard 
+              key={product.id}
+              id={String(product.id)}
+              title={product.title || product.name || 'Unknown Product'}
+              imageUrl={product.image || product.image_url || '/images/placeholder.jpg'}
+              price={product.price}
+              originalPrice={product.original_price || product.discount_price}
+              condition={product.condition || 'new'}
+              specs={typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs}
+              stock={product.stock}
+              category={product.category}
+              discountPercentage={product.discount_percentage}
+              slug={product.slug}
+            />
+          ))
+        ) : !loading && query ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-muted-foreground mb-4">No products found matching your search.</p>
+            <Button variant="outline" onClick={() => window.history.back()}>
+              Go Back
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <MainLayout>
+      <Suspense fallback={
+        <div className="container px-4 md:px-6 py-8 md:py-12">
+          <div className="flex items-center mb-6 gap-2">
+            <Search className="h-5 w-5 text-primary" />
+            <h1 className="text-3xl font-bold tracking-tight">Search Results</h1>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-lg bg-card animate-pulse h-[300px]"></div>
+            ))}
+          </div>
+        </div>
+      }>
+        <SearchResults />
+      </Suspense>
     </MainLayout>
   );
 } 
