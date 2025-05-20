@@ -29,6 +29,8 @@ interface Product {
     [key: string]: string;
   };
   slug: string;
+  stock?: number;
+  discount_percentage?: number;
 }
 
 interface Category {
@@ -197,6 +199,10 @@ export default function CategoryPage() {
                 originalPrice={product.original_price || product.discount_price}
                 condition={product.condition || 'new'}
                 specs={typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs}
+                stock={product.stock}
+                category={product.category}
+                discountPercentage={product.discount_percentage}
+                slug={product.slug}
               />
             ))}
           </div>

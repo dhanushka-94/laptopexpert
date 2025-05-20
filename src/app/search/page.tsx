@@ -153,6 +153,7 @@ export default function SearchPage() {
                 stock={product.stock}
                 category={product.category}
                 discountPercentage={product.discount_percentage}
+                slug={product.slug}
               />
             ))
           ) : !loading && query ? (

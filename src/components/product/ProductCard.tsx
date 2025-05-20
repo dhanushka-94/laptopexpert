@@ -25,6 +25,7 @@ interface ProductCardProps {
   discountPercentage?: number;
   stock?: number;
   category?: string;
+  slug?: string;
 }
 
 export function ProductCard({
@@ -38,12 +39,16 @@ export function ProductCard({
   discountPercentage,
   stock,
   category,
+  slug,
 }: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
   // Only use the discount percentage from the API
   const discount = discountPercentage || 0;
   
   const brandName = title.split(' ')[0]; // Extract the first word as brand name
+  
+  // Use slug if available, otherwise fall back to id
+  const productLink = `/product/${slug || id}`;
   
   // Skip rendering if this is a service category product
   if (category && category.toLowerCase().includes('service')) {
@@ -73,7 +78,7 @@ export function ProductCard({
       whileHover={{ y: -5 }}
     >
       <Card className="overflow-hidden group h-full flex flex-col border border-border/50">
-        <Link href={`/product/${id}`} className="flex-shrink-0">
+        <Link href={productLink} className="flex-shrink-0">
           <div className="relative w-full bg-background">
             <AspectRatio ratio={1/1} className="m-0 p-0 bg-background">
               {!imageError && imageUrl ? (
@@ -149,7 +154,7 @@ export function ProductCard({
         </Link>
         
         <CardContent className="p-4 flex-grow">
-          <Link href={`/product/${id}`} className="block">
+          <Link href={productLink} className="block">
             <h3 className="font-medium text-base line-clamp-2 mb-1 hover:underline">{title}</h3>
             
             <div className="space-y-1 mt-3">

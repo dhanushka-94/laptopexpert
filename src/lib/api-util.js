@@ -103,7 +103,12 @@ export async function getProductBySlug(slug) {
   
   try {
     console.log(`Fetching product details from: ${baseUrl}/products/${slug}`);
-    const response = await fetchData(`${baseUrl}/products/${slug}`, { 
+    const response = await fetch(`${baseUrl}/products/${slug}`, { 
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       cache: 'no-store' 
     });
     

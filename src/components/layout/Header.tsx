@@ -7,13 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { getProducts } from '@/lib/api-util';
 
 // Define interface for category
 interface Category {
@@ -22,20 +23,87 @@ interface Category {
   slug: string;
 }
 
+// Define interface for search suggestion
+interface SearchSuggestion {
+  id: string | number;
+  name: string;
+  slug: string;
+  image?: string;
+}
+
 export function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // Handle search submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowSuggestions(false);
     if (searchQuery.trim()) {
       // Redirect to search results page
       window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
     }
   };
+
+  // Handle click outside suggestions
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Fetch product data for suggestions
+  useEffect(() => {
+    async function fetchProductsForSuggestions() {
+      const allProducts = await getProducts();
+      if (Array.isArray(allProducts)) {
+        setProducts(allProducts);
+      }
+    }
+    
+    fetchProductsForSuggestions();
+  }, []);
+
+  // Generate suggestions based on search query
+  useEffect(() => {
+    if (searchQuery.trim().length > 1) {
+      const query = searchQuery.toLowerCase();
+      const filtered = products
+        .filter(product => {
+          const name = (product.name || product.title || '').toLowerCase();
+          const specs = typeof product.specs === 'string' 
+            ? product.specs.toLowerCase() 
+            : Object.values(product.specs || {}).join(' ').toLowerCase();
+          
+          return name.includes(query) || specs.includes(query);
+        })
+        .slice(0, 5)
+        .map(product => ({
+          id: product.id,
+          name: product.name || product.title || 'Unknown Product',
+          slug: product.slug || product.id,
+          image: product.image || product.image_url
+        }));
+      
+      setSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [searchQuery, products]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -88,6 +156,35 @@ export function Header() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </form>
+                  
+                  {/* Mobile Suggestions */}
+                  {showSuggestions && (
+                    <div 
+                      ref={suggestionsRef}
+                      className="absolute z-10 mt-1 w-full rounded-md bg-background shadow-lg border border-border"
+                    >
+                      {suggestions.map((suggestion) => (
+                        <Link 
+                          key={suggestion.id} 
+                          href={`/product/${suggestion.slug}`}
+                          onClick={() => setShowSuggestions(false)}
+                          className="flex items-center px-4 py-2 hover:bg-muted transition-colors text-sm"
+                        >
+                          {suggestion.image && (
+                            <div className="w-8 h-8 mr-2 relative flex-shrink-0">
+                              <Image 
+                                src={suggestion.image} 
+                                alt={suggestion.name} 
+                                fill 
+                                className="object-cover rounded"
+                              />
+                            </div>
+                          )}
+                          <span className="truncate">{suggestion.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="mt-2 space-y-1">
@@ -234,6 +331,8 @@ export function Header() {
                     placeholder="Search laptops..."
                     className="w-full md:w-64 pl-8 rounded-full bg-background"
                     autoFocus
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   <Button 
                     type="button" 
@@ -247,6 +346,38 @@ export function Header() {
                       <path d="M18 6L6 18M6 6l12 12" />
                     </svg>
                   </Button>
+                  
+                  {/* Mobile Search Suggestions */}
+                  {showSuggestions && (
+                    <div 
+                      ref={suggestionsRef}
+                      className="absolute z-10 mt-1 w-full rounded-md bg-background shadow-lg border border-border"
+                    >
+                      {suggestions.map((suggestion) => (
+                        <Link 
+                          key={suggestion.id} 
+                          href={`/product/${suggestion.slug}`}
+                          onClick={() => {
+                            setShowSuggestions(false);
+                            setIsSearchVisible(false);
+                          }}
+                          className="flex items-center px-4 py-2 hover:bg-muted transition-colors text-sm"
+                        >
+                          {suggestion.image && (
+                            <div className="w-8 h-8 mr-2 relative flex-shrink-0">
+                              <Image 
+                                src={suggestion.image} 
+                                alt={suggestion.name} 
+                                fill 
+                                className="object-cover rounded"
+                              />
+                            </div>
+                          )}
+                          <span className="truncate">{suggestion.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </motion.form>
             ) : (
@@ -257,17 +388,47 @@ export function Header() {
             )}
           </AnimatePresence>
           
+          {/* Desktop search */}
           <div className="hidden md:block">
             <form className="flex items-center" onSubmit={handleSearch}>
               <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Search laptops..."
-                  className="w-64 pl-8 rounded-full bg-background"
+                  className="w-80 pl-10 py-6 rounded-full bg-background text-base"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+                
+                {/* Desktop Search Suggestions */}
+                {showSuggestions && (
+                  <div 
+                    ref={suggestionsRef}
+                    className="absolute z-10 mt-1 w-full rounded-md bg-background shadow-lg border border-border"
+                  >
+                    {suggestions.map((suggestion) => (
+                      <Link 
+                        key={suggestion.id} 
+                        href={`/product/${suggestion.slug}`}
+                        onClick={() => setShowSuggestions(false)}
+                        className="flex items-center px-4 py-3 hover:bg-muted transition-colors text-base"
+                      >
+                        {suggestion.image && (
+                          <div className="w-10 h-10 mr-3 relative flex-shrink-0">
+                            <Image 
+                              src={suggestion.image} 
+                              alt={suggestion.name} 
+                              fill 
+                              className="object-cover rounded"
+                            />
+                          </div>
+                        )}
+                        <span className="truncate">{suggestion.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             </form>
           </div>

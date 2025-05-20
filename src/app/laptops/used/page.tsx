@@ -143,6 +143,7 @@ export default function UsedLaptopsPage() {
                 stock={laptop.stock}
                 category={laptop.category}
                 discountPercentage={laptop.discount_percentage}
+                slug={laptop.slug}
               />
             ))
           ) : (

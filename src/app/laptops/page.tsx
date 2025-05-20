@@ -29,6 +29,7 @@ interface Product {
     display: string;
     [key: string]: string;
   };
+  slug?: string;
 }
 
 export default function LaptopsPage() {
@@ -139,6 +140,7 @@ export default function LaptopsPage() {
                     stock={product.stock}
                     category={product.category}
                     discountPercentage={product.discount_percentage}
+                    slug={product.slug}
                   />
                 ))
               ) : (
@@ -167,6 +169,7 @@ export default function LaptopsPage() {
                     stock={product.stock}
                     category={product.category}
                     discountPercentage={product.discount_percentage}
+                    slug={product.slug}
                   />
                 ))
               ) : (
@@ -195,6 +198,7 @@ export default function LaptopsPage() {
                     stock={product.stock}
                     category={product.category}
                     discountPercentage={product.discount_percentage}
+                    slug={product.slug}
                   />
                 ))
               ) : (
