@@ -13,56 +13,48 @@ const REPAIR_SERVICES = [
     title: 'Screen Replacement',
     icon: Monitor,
     description: 'Fix cracked, damaged, or non-functioning laptop displays with genuine replacement parts',
-    price: 'From Rs. 15,000',
     duration: '1-2 days',
   },
   {
     title: 'Battery Replacement',
     icon: Battery,
     description: 'Restore your laptop&apos;s battery life with high-quality replacement batteries',
-    price: 'From Rs. 8,000',
     duration: 'Same day',
   },
   {
     title: 'Keyboard Replacement',
     icon: Keyboard,
     description: 'Replace damaged, sticky, or non-responsive keys or full keyboard units',
-    price: 'From Rs. 6,500',
     duration: '1 day',
   },
   {
     title: 'Virus Removal & Security',
     icon: Shield,
     description: 'Remove malware, viruses, and secure your system with professional software',
-    price: 'From Rs. 3,500',
     duration: '1 day',
   },
   {
     title: 'Data Recovery',
     icon: HardDrive,
     description: 'Recover important files and data from damaged or corrupted hard drives',
-    price: 'From Rs. 10,000',
     duration: '2-5 days',
   },
   {
     title: 'Hardware Upgrades',
     icon: Zap,
     description: 'Upgrade RAM, storage, and other components to improve performance',
-    price: 'From Rs. 5,000',
     duration: 'Same day',
   },
   {
     title: 'OS Installation',
     icon: RefreshCw,
     description: 'Clean installation of Windows or macOS with all necessary drivers',
-    price: 'From Rs. 4,000',
     duration: '1 day',
   },
   {
     title: 'Liquid Damage Repair',
     icon: Wrench,
     description: 'Specialized service to recover laptops damaged by spills or water exposure',
-    price: 'From Rs. 12,000',
     duration: '3-5 days',
   },
 ];
@@ -119,9 +111,6 @@ export default function ServicesPage() {
                 <MessageSquare className="h-4 w-4" />
                 Book a Repair
               </Button>
-              <Button variant="outline" size="lg">
-                Service Pricing
-              </Button>
             </div>
           </div>
           
@@ -155,9 +144,11 @@ export default function ServicesPage() {
                   <h3 className="text-lg font-bold mb-2">{service.title}</h3>
                   <p className="text-sm text-muted-foreground mb-4 flex-grow">{service.description}</p>
                   
-                  <div className="flex justify-between items-center mt-auto pt-4 border-t border-border">
-                    <div className="text-sm font-medium">{service.price}</div>
-                    <div className="text-xs text-muted-foreground">{service.duration}</div>
+                  <div className="flex items-center mt-auto pt-4 border-t border-border">
+                    <div className="text-sm">
+                      <span className="text-xs text-muted-foreground mr-1">Typical duration:</span>
+                      <span className="font-medium">{service.duration}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

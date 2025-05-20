@@ -3,11 +3,33 @@
  * to avoid "Method Not Allowed" errors
  */
 
+// Product interface
+interface Product {
+  id: string | number;
+  name?: string;
+  title?: string;
+  slug: string;
+  image?: string;
+  image_url?: string;
+  price: number;
+  original_price?: number;
+  discount_price?: number;
+  category?: string;
+  specs: any;
+  stock?: number;
+  discount_percentage?: number;
+  [key: string]: any;
+}
+
+interface FetchOptions extends RequestInit {
+  headers?: Record<string, string>;
+}
+
 /**
  * Get the current base URL depending on the environment
  * @returns {string} - API base URL
  */
-export function getBaseUrl() {
+export function getBaseUrl(): string {
   // Check if we're running on the client or server side
   const isClient = typeof window !== 'undefined';
   
@@ -26,7 +48,7 @@ export function getBaseUrl() {
  * @param {Object} options - Fetch options
  * @returns {Promise} - Fetch response
  */
-export async function fetchData(url, options = {}) {
+export async function fetchData(url: string, options: FetchOptions = {}): Promise<Response> {
   return fetch(url, {
     method: 'GET',
     ...options,
@@ -43,12 +65,12 @@ export async function fetchData(url, options = {}) {
  * @param {Object} options - Query parameters
  * @returns {Promise<Object>} - JSON response
  */
-export async function getProducts(options = {}) {
+export async function getProducts(options: Record<string, any> = {}): Promise<Product[]> {
   const params = new URLSearchParams();
   
   Object.entries(options).forEach(([key, value]) => {
     if (value !== undefined) {
-      params.append(key, value);
+      params.append(key, String(value));
     }
   });
   
@@ -79,13 +101,13 @@ export async function getProducts(options = {}) {
       
       // The proxy returns data in a different format, handle it
       if (proxyData && proxyData.data && Array.isArray(proxyData.data)) {
-        return proxyData.data;
+        return proxyData.data as Product[];
       }
       
-      return proxyData; // Just return whatever we got
+      return proxyData as Product[]; // Just return whatever we got
     }
     
-    return await response.json();
+    return await response.json() as Product[];
   } catch (error) {
     console.error('Failed to fetch products:', error);
     // Return empty array instead of throwing to avoid breaking the UI
@@ -98,7 +120,7 @@ export async function getProducts(options = {}) {
  * @param {string} slug - Product identifier 
  * @returns {Promise<Object>} - JSON response
  */
-export async function getProductBySlug(slug) {
+export async function getProductBySlug(slug: string): Promise<Product | null> {
   const baseUrl = getBaseUrl();
   
   try {
@@ -114,12 +136,16 @@ export async function getProductBySlug(slug) {
     
     if (!response.ok) {
       if (response.status === 404) {
+        console.error(`Product not found (404) for slug: ${slug}`);
         return null;
       }
+      console.error(`Error fetching product: ${response.status} ${response.statusText}`);
       throw new Error(`Error fetching product: ${response.statusText}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    console.log(`Successfully fetched product data for ${slug}:`, data);
+    return data as Product;
   } catch (error) {
     console.error(`Failed to fetch product with slug ${slug}:`, error);
     return null; // Return null instead of throwing

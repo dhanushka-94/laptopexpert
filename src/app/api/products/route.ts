@@ -144,25 +144,25 @@ export async function GET(request: Request) {
         Math.round(((regularPrice - promotionPrice!) / regularPrice) * 100) : 0;
       
       return {
-        id: item.id,
-        name: item.item_name,
-        item_code: item.item_code,
-        slug: item.item_code,
+      id: item.id,
+      name: item.item_name,
+      item_code: item.item_code,
+      slug: item.item_code,
         price: hasPromotion ? promotionPrice! : salePrice,
         original_price: regularPrice,
         discount_price: hasPromotion ? promotionPrice! : null,
         discount_percentage: discountPercentage,
-        category: item.category_name,
-        brand: item.brand_name,
-        image_url: item.image_url || '/images/placeholder.jpg',
+      category: item.category_name,
+      brand: item.brand_name,
+      image_url: item.image_url || '/images/placeholder.jpg',
         stock: item.stock !== undefined ? parseInt(item.stock.toString()) : undefined,
-        specs: {
-          processor: item.processor || 'Not specified',
-          ram: item.ram || 'Not specified',
-          storage: item.storage || 'Not specified',
-          display: item.display || 'Not specified',
-          warranty: item.warranty !== "0" ? `${item.warranty} ${item.warranty_date}` : 'No warranty'
-        }
+      specs: {
+        processor: item.processor || 'Not specified',
+        ram: item.ram || 'Not specified',
+        storage: item.storage || 'Not specified',
+        display: item.display || 'Not specified',
+        warranty: item.warranty !== "0" ? `${item.warranty} ${item.warranty_date}` : 'No warranty'
+      }
       };
     });
     

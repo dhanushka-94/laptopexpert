@@ -148,10 +148,10 @@ export function Header() {
                 <div className="relative my-2">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <form onSubmit={handleSearch}>
-                    <Input
-                      type="search"
-                      placeholder="Search laptops..."
-                      className="pl-8 rounded-lg w-full bg-background"
+                  <Input
+                    type="search"
+                    placeholder="Search laptops..."
+                    className="pl-8 rounded-lg w-full bg-background"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -370,6 +370,7 @@ export function Header() {
                                 alt={suggestion.name} 
                                 fill 
                                 className="object-cover rounded"
+                                unoptimized
                               />
                             </div>
                           )}
@@ -387,51 +388,6 @@ export function Header() {
               </Button>
             )}
           </AnimatePresence>
-          
-          {/* Desktop search */}
-          <div className="hidden md:block">
-            <form className="flex items-center" onSubmit={handleSearch}>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search laptops..."
-                  className="w-80 pl-10 py-6 rounded-full bg-background text-base"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                
-                {/* Desktop Search Suggestions */}
-                {showSuggestions && (
-                  <div 
-                    ref={suggestionsRef}
-                    className="absolute z-10 mt-1 w-full rounded-md bg-background shadow-lg border border-border"
-                  >
-                    {suggestions.map((suggestion) => (
-                      <Link 
-                        key={suggestion.id} 
-                        href={`/product/${suggestion.slug}`}
-                        onClick={() => setShowSuggestions(false)}
-                        className="flex items-center px-4 py-3 hover:bg-muted transition-colors text-base"
-                      >
-                        {suggestion.image && (
-                          <div className="w-10 h-10 mr-3 relative flex-shrink-0">
-                            <Image 
-                              src={suggestion.image} 
-                              alt={suggestion.name} 
-                              fill 
-                              className="object-cover rounded"
-                            />
-                          </div>
-                        )}
-                        <span className="truncate">{suggestion.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </form>
-          </div>
           
           <Link href="/account">
             <Button variant="ghost" size="icon" aria-label="Account">
@@ -452,6 +408,54 @@ export function Header() {
               </motion.span>
             </Button>
           </Link>
+        </div>
+      </div>
+      
+      {/* Desktop search below navigation */}
+      <div className="hidden md:block border-t border-border">
+        <div className="container px-4 md:px-6 py-2">
+          <form className="flex items-center justify-center" onSubmit={handleSearch}>
+            <div className="relative max-w-2xl w-full">
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search laptops..."
+                className="w-full pl-10 py-5 rounded-md bg-background/50 border-muted text-base"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              
+              {/* Desktop Search Suggestions */}
+              {showSuggestions && (
+                <div 
+                  ref={suggestionsRef}
+                  className="absolute z-10 mt-1 w-full rounded-md bg-background shadow-lg border border-border"
+                >
+                  {suggestions.map((suggestion) => (
+                    <Link 
+                      key={suggestion.id} 
+                      href={`/product/${suggestion.slug}`}
+                      onClick={() => setShowSuggestions(false)}
+                      className="flex items-center px-4 py-3 hover:bg-muted transition-colors text-base"
+                    >
+                      {suggestion.image && (
+                        <div className="w-10 h-10 mr-3 relative flex-shrink-0">
+                          <Image 
+                            src={suggestion.image} 
+                            alt={suggestion.name} 
+                            fill 
+                            className="object-cover rounded"
+                            unoptimized
+                          />
+                        </div>
+                      )}
+                      <span className="truncate">{suggestion.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </form>
         </div>
       </div>
     </header>

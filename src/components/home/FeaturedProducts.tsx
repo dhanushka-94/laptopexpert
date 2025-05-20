@@ -130,7 +130,7 @@ export function FeaturedProducts() {
             setRetryCount(prev => prev + 1);
           }, delay);
         } else {
-          setError('Failed to load products. Please try again later.');
+        setError('Failed to load products. Please try again later.');
           // Use fallback products instead of showing nothing
           setProducts(FALLBACK_PRODUCTS);
         }
