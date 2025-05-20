@@ -12,6 +12,7 @@ export interface Product {
   price: number;
   original_price?: number;
   discount_price?: number;
+  discount_percentage?: number;
   condition?: 'new' | 'used';
   category?: string;
   brand?: string;

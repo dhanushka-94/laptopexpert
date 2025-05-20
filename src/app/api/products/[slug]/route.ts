@@ -44,17 +44,30 @@ export async function GET(
     
     if (product) {
       console.log(`Found product: ${product.item_name} (ID: ${product.id}, Item Code: ${product.item_code})`);
+      
+      // Calculate prices based on API data only
+      const salePrice = parseFloat(product.sale_price);
+      const hasPromotion = !!product.promotion_price && product.promotion_price !== undefined && parseFloat(product.promotion_price) > 0;
+      const promotionPrice = hasPromotion && product.promotion_price ? parseFloat(product.promotion_price) : null;
+      const regularPrice = parseFloat(product.whole_sale_price || product.sale_price);
+      
+      // Calculate discount percentage only if there's a promotion from API
+      const discountPercentage = hasPromotion ? 
+        Math.round(((regularPrice - promotionPrice!) / regularPrice) * 100) : 0;
+      
       // Transform the product to match our app's expected format
       const transformedProduct = {
         id: product.id,
         name: product.item_name,
         item_code: product.item_code,
         slug: product.item_code, // Use item_code as slug if no dedicated slug field exists
-        price: parseFloat(product.sale_price),
-        original_price: parseFloat(product.whole_sale_price || product.sale_price),
-        discount_price: parseFloat(product.whole_sale_price || product.sale_price),
+        price: hasPromotion ? promotionPrice! : salePrice,
+        original_price: regularPrice,
+        discount_price: hasPromotion ? promotionPrice! : null,
+        discount_percentage: discountPercentage,
         category: product.category_name,
         brand: product.brand_name,
+        stock: product.stock !== undefined ? parseInt(product.stock.toString()) : undefined,
         image: product.image_url || '/images/placeholder.jpg',
         image_url: product.image_url || '/images/placeholder.jpg',
         specs: {

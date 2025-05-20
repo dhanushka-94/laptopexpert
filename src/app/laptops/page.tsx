@@ -19,6 +19,9 @@ interface Product {
   original_price?: number;
   discount_price?: number;
   condition?: 'new' | 'used';
+  stock?: number;
+  discount_percentage?: number;
+  category?: string;
   specs: string | {
     processor: string;
     ram: string;
@@ -39,8 +42,26 @@ export default function LaptopsPage() {
       try {
         setLoading(true);
         setError(null);
+        
+        // Fetch products and filter out services
         const allProducts = await getProducts();
-        setProducts(Array.isArray(allProducts) ? allProducts : []);
+        
+        let filteredProducts = Array.isArray(allProducts) ? 
+          allProducts.filter(p => 
+            !(p.category && p.category.toLowerCase().includes('service'))
+          ) : [];
+          
+        // Sort by stock status: in-stock first
+        filteredProducts.sort((a, b) => {
+          const aInStock = a.stock === undefined || a.stock > 0;
+          const bInStock = b.stock === undefined || b.stock > 0;
+          
+          if (aInStock && !bInStock) return -1; // a is in stock, b is not
+          if (!aInStock && bInStock) return 1;  // b is in stock, a is not
+          return 0; // both have same stock status
+        });
+        
+        setProducts(filteredProducts);
       } catch (error) {
         console.error('Error loading products:', error);
         setError('Failed to load products. Please try again later.');
@@ -115,6 +136,9 @@ export default function LaptopsPage() {
                     originalPrice={product.original_price || product.discount_price}
                     condition={product.condition || 'new'}
                     specs={typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs}
+                    stock={product.stock}
+                    category={product.category}
+                    discountPercentage={product.discount_percentage}
                   />
                 ))
               ) : (
@@ -140,6 +164,9 @@ export default function LaptopsPage() {
                     originalPrice={product.original_price || product.discount_price}
                     condition="new"
                     specs={typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs}
+                    stock={product.stock}
+                    category={product.category}
+                    discountPercentage={product.discount_percentage}
                   />
                 ))
               ) : (
@@ -165,6 +192,9 @@ export default function LaptopsPage() {
                     originalPrice={product.original_price || product.discount_price}
                     condition="used"
                     specs={typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs}
+                    stock={product.stock}
+                    category={product.category}
+                    discountPercentage={product.discount_percentage}
                   />
                 ))
               ) : (

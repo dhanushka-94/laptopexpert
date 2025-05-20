@@ -26,6 +26,16 @@ export function Header() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Handle search submission
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Redirect to search results page
+      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+    }
+  };
 
   useEffect(() => {
     async function fetchCategories() {
@@ -69,11 +79,15 @@ export function Header() {
                 
                 <div className="relative my-2">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search laptops..."
-                    className="pl-8 rounded-lg w-full bg-background"
-                  />
+                  <form onSubmit={handleSearch}>
+                    <Input
+                      type="search"
+                      placeholder="Search laptops..."
+                      className="pl-8 rounded-lg w-full bg-background"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </form>
                 </div>
                 
                 <div className="mt-2 space-y-1">
@@ -85,9 +99,6 @@ export function Header() {
                     animate={{ opacity: 1, height: 'auto' }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Link href="/products" className="block px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors">
-                      All Products
-                    </Link>
                     <Link href="/laptops/new" className="block px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors">
                       Brand New Laptops
                     </Link>
@@ -168,9 +179,7 @@ export function Header() {
         </div>
         
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">
-            All Products
-          </Link>
+          {/* All Products link removed */}
           
           {/* Categories dropdown */}
           <DropdownMenu>
@@ -249,13 +258,15 @@ export function Header() {
           </AnimatePresence>
           
           <div className="hidden md:block">
-            <form className="flex items-center">
+            <form className="flex items-center" onSubmit={handleSearch}>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Search laptops..."
                   className="w-64 pl-8 rounded-full bg-background"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </form>

@@ -49,6 +49,7 @@ interface Product {
   features?: string[];
   images?: string[];
   relatedProducts?: any[];
+  discount_percentage?: number;
 }
 
 export default function ProductPage() {
@@ -101,10 +102,16 @@ export default function ProductPage() {
 
   const specs = getSpecs();
   
-  // Calculate discount percentage
-  const discount = product?.original_price || product?.discount_price
-    ? Math.round((((product.original_price ?? product.discount_price ?? 0) - product.price) / (product.original_price ?? product.discount_price ?? 1)) * 100)
-    : 0;
+  // Use discount percentage from API
+  const discount = product?.discount_percentage || 0;
+  
+  // Format the price with .00
+  const formatPrice = (value: number) => {
+    return value.toLocaleString('en-US', { 
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2 
+    });
+  };
 
   // Loading skeleton
   if (loading) {
@@ -231,11 +238,11 @@ export default function ProductPage() {
               )}
 
               <div className="flex flex-wrap items-baseline gap-2 mb-6">
-                <span className="text-2xl sm:text-3xl font-bold">Rs. {product.price.toLocaleString()}</span>
+                <span className="text-2xl sm:text-3xl font-bold">Rs. {formatPrice(product.price)}</span>
                 {(product.original_price || product.discount_price) && discount > 0 && (
                   <>
                     <span className="text-lg text-muted-foreground line-through">
-                      Rs. {((product.original_price ?? product.discount_price) ?? 0).toLocaleString()}
+                      Rs. {formatPrice((product.original_price ?? product.discount_price) ?? 0)}
                     </span>
                     <span className="text-sm font-medium bg-red-500 text-white px-2 py-1 rounded-md">
                       {discount}% OFF
@@ -392,7 +399,7 @@ export default function ProductPage() {
                         {relatedProduct.title}
                       </h3>
                       <p className="mt-2 font-semibold">
-                        Rs. {relatedProduct.price.toLocaleString()}
+                        Rs. {formatPrice(relatedProduct.price)}
                       </p>
                     </div>
                   </div>

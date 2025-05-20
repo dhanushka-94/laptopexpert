@@ -25,6 +25,8 @@ interface Product {
     [key: string]: string;
   };
   slug?: string;
+  discount_percentage?: number;
+  stock?: number;
 }
 
 // Fallback products to display if API completely fails
@@ -193,6 +195,9 @@ export function FeaturedProducts() {
                 originalPrice={product.original_price || product.discount_price}
                 condition={product.condition || 'new'}
                 specs={typeof product.specs === 'string' ? JSON.parse(product.specs) : product.specs}
+                discountPercentage={product.discount_percentage}
+                stock={product.stock}
+                category={product.category}
               />
             ))
           ) : (

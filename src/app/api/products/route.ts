@@ -16,6 +16,8 @@ interface ApiItem {
   ram?: string;
   storage?: string;
   display?: string;
+  promotion_price?: string;
+  stock?: number;
   [key: string]: any;
 }
 
@@ -26,8 +28,11 @@ interface TransformedProduct {
   item_code: string;
   price: number;
   original_price: number;
+  discount_price: number | null;
+  discount_percentage: number;
   category: string;
   brand: string;
+  stock?: number;
   specs: {
     processor?: string;
     ram?: string;
@@ -127,27 +132,57 @@ export async function GET(request: Request) {
     console.log(`Successfully parsed ${data.data.length} products from external API`);
     
     // Transform the API data to match our app's expected format
-    let transformedProducts = data.data.map((item: ApiItem) => ({
-      id: item.id,
-      name: item.item_name,
-      item_code: item.item_code,
-      slug: item.item_code,
-      price: parseFloat(item.sale_price),
-      original_price: parseFloat(item.whole_sale_price || item.sale_price),
-      discount_price: parseFloat(item.whole_sale_price || item.sale_price),
-      category: item.category_name,
-      brand: item.brand_name,
-      image_url: item.image_url || '/images/placeholder.jpg',
-      specs: {
-        processor: item.processor || 'Not specified',
-        ram: item.ram || 'Not specified',
-        storage: item.storage || 'Not specified',
-        display: item.display || 'Not specified',
-        warranty: item.warranty !== "0" ? `${item.warranty} ${item.warranty_date}` : 'No warranty'
-      }
-    }));
+    let transformedProducts = data.data.map((item: ApiItem) => {
+      // Calculate the correct prices
+      const salePrice = parseFloat(item.sale_price);
+      const hasPromotion = !!item.promotion_price && item.promotion_price !== undefined && parseFloat(item.promotion_price) > 0;
+      const promotionPrice = hasPromotion && item.promotion_price ? parseFloat(item.promotion_price) : null;
+      const regularPrice = parseFloat(item.whole_sale_price || item.sale_price);
+      
+      // Calculate discount percentage only if there's a promotion from API
+      const discountPercentage = hasPromotion ? 
+        Math.round(((regularPrice - promotionPrice!) / regularPrice) * 100) : 0;
+      
+      return {
+        id: item.id,
+        name: item.item_name,
+        item_code: item.item_code,
+        slug: item.item_code,
+        price: hasPromotion ? promotionPrice! : salePrice,
+        original_price: regularPrice,
+        discount_price: hasPromotion ? promotionPrice! : null,
+        discount_percentage: discountPercentage,
+        category: item.category_name,
+        brand: item.brand_name,
+        image_url: item.image_url || '/images/placeholder.jpg',
+        stock: item.stock !== undefined ? parseInt(item.stock.toString()) : undefined,
+        specs: {
+          processor: item.processor || 'Not specified',
+          ram: item.ram || 'Not specified',
+          storage: item.storage || 'Not specified',
+          display: item.display || 'Not specified',
+          warranty: item.warranty !== "0" ? `${item.warranty} ${item.warranty_date}` : 'No warranty'
+        }
+      };
+    });
     
     console.log(`Transformed ${transformedProducts.length} products`);
+    
+    // Filter out service products
+    transformedProducts = transformedProducts.filter((product: TransformedProduct) => 
+      !(product.category && product.category.toLowerCase().includes('service'))
+    );
+    
+    // Sort products: in stock first, then out of stock
+    transformedProducts.sort((a: TransformedProduct, b: TransformedProduct) => {
+      // If stock is undefined for either, treat as in stock
+      const aInStock = a.stock === undefined || a.stock > 0;
+      const bInStock = b.stock === undefined || b.stock > 0;
+      
+      if (aInStock && !bInStock) return -1; // a is in stock, b is not
+      if (!aInStock && bInStock) return 1;  // b is in stock, a is not
+      return 0; // both have same stock status
+    });
     
     // Apply filters if needed
     if (featured === 'true') {

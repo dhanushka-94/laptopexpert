@@ -20,6 +20,8 @@ interface Product {
   condition?: 'new' | 'used';
   category?: string;
   category_name?: string;
+  stock?: number;
+  discount_percentage?: number;
   specs: string | {
     processor: string;
     ram: string;
@@ -44,19 +46,33 @@ export default function UsedLaptopsPage() {
         // Fetch all products
         const allProducts = await getProducts();
         
-        // Filter for used laptops - look for products in USED LAPTOPS category
+        // Filter for used laptops - looking for "used" in the category name
         const usedProducts = Array.isArray(allProducts) ? allProducts.filter(product => 
-          product.category_name && 
-          product.category_name.toUpperCase().includes('USED')
+          (product.category && 
+           product.category.toLowerCase().includes('used')) ||
+          (product.category_name && 
+           product.category_name.toLowerCase().includes('used')) ||
+          (product.condition && 
+           product.condition.toLowerCase() === 'used')
         ) : [];
         
-        console.log(`Found ${usedProducts.length} used laptops with category containing 'USED'`);
+        console.log(`Found ${usedProducts.length} used laptops`);
         
         // Ensure all products are marked as used
         const productsWithUsedCondition = usedProducts.map(product => ({
           ...product,
           condition: 'used' as const
         }));
+        
+        // Sort by stock status: in-stock first
+        productsWithUsedCondition.sort((a, b) => {
+          const aInStock = a.stock === undefined || a.stock > 0;
+          const bInStock = b.stock === undefined || b.stock > 0;
+          
+          if (aInStock && !bInStock) return -1; // a is in stock, b is not
+          if (!aInStock && bInStock) return 1;  // b is in stock, a is not
+          return 0; // both have same stock status
+        });
         
         setUsedLaptops(productsWithUsedCondition);
       } catch (error) {
@@ -124,6 +140,9 @@ export default function UsedLaptopsPage() {
                 originalPrice={laptop.original_price || laptop.discount_price}
                 condition="used"
                 specs={typeof laptop.specs === 'string' ? JSON.parse(laptop.specs) : laptop.specs}
+                stock={laptop.stock}
+                category={laptop.category}
+                discountPercentage={laptop.discount_percentage}
               />
             ))
           ) : (
